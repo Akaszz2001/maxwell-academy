@@ -1,0 +1,13 @@
+{
+    "name": "Maxwell Academy",
+    "short_name": "Maxwell",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "description": "Maxwell Academy Web App",
+    "icons": [
+    
+    ]
+  }
+  
