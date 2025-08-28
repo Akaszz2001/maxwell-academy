@@ -47,9 +47,9 @@ const{isAuthenticated,user}=useAuthStore()
 
   const getDashboardPath = (role: string): string => {
     switch (role) {
-      case "admin": return "/admin/";
+      case "admin": return "/admin/dashboard";
       case "faculty": return "/faculty/dashboard";
-      case "student": return '/'
+      case "student": return '/student/dashboard'
       default: return "/student/dashboard";
     }
   };
@@ -68,8 +68,15 @@ const{isAuthenticated,user}=useAuthStore()
     // ✅ run when auth state changes
     if (isAuthenticated === false) {
       navigate("/login");
-    } else if (user?.role === "student") {
-      navigate("/student");
+    } 
+    else if (user?.role === "student") {
+      navigate("/student/dashboard");
+    } 
+    else if (user?.role === "admin") {
+      navigate("/admin/dashboard");
+    } 
+    else if (user?.role === "faculty") {
+      navigate("/faculty/dashboard");
     } 
   }, [isAuthenticated, user, navigate]);
   return (

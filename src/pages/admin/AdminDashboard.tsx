@@ -1,5 +1,5 @@
 import { useAuthStore } from "../../store/authStore"
-export default function Admin(){
+export default function AdminDashboard(){
 
 const {signOut} =useAuthStore()
     return(
@@ -8,4 +8,4 @@ const {signOut} =useAuthStore()
             <button onClick={signOut}>logout</button>
         </div>
     )
-}
+}2
