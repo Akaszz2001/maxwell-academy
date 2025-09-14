@@ -1,0 +1,9 @@
+authtoken: 32Yn0RJvwboclr3VsVrU2N30Ynt_9sVmXdmZ86CXno2maixc
+
+tunnels:
+  react:
+    addr: 5173
+    proto: http
+  pocketbase:
+    addr: 8090
+    proto: http

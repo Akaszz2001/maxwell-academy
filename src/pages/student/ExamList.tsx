@@ -46,6 +46,7 @@ export default function ExamList() {
       
         return;
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       // If no record, it's fine → continue
     }

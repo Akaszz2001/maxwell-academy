@@ -38,59 +38,204 @@ export const useExamSessionStore = create<ExamSessionState>((set, get) => ({
     })),
 
   // ✅ FINISH exam & save to DB
-  finishExam: async (examId) => {
-    const { answers } = get();
-    const userId = pb.authStore.model?.id;
-    if (!userId) throw new Error("Not logged in");
+  // finishExam: async (examId) => {
+  //   const { answers } = get();
+  //   const userId = pb.authStore.model?.id;
+  //   if (!userId) throw new Error("Not logged in");
 
-    // 1️⃣ ensure attempt exists
-    let attempt;
+  //   // 1️⃣ ensure attempt exists
+  //   let attempt;
+  //   try {
+  //     attempt = await pb
+  //       .collection("exam_attempts")
+  //       .getFirstListItem(`examId="${examId}" && studentId="${userId}"`);
+  //   } catch {
+  //     attempt = await pb.collection("exam_attempts").create({
+  //       examId,
+  //       studentId: userId,
+  //       startedAt: new Date(),
+  //       status: "in_progress",
+  //     });
+  //   }
+
+  //   // 2️⃣ insert/update answers
+  //   for (const [qId, ans] of Object.entries(answers)) {
+  //     try {
+  //       // if answer exists update else create
+  //       const existing = await pb
+  //         .collection("exam_answers")
+  //         .getFirstListItem(
+  //           `examId="${examId}" && studentId="${userId}" && questionId="${qId}"`
+  //         );
+  //       await pb.collection("exam_answers").update(existing.id, {
+  //         answer: ans,
+  //         submittedAt: new Date(),
+  //         isFinal: true,
+  //       });
+  //     } catch {
+  //       await pb.collection("exam_answers").create({
+  //         examId,
+  //         studentId: userId,
+  //         questionId: qId,
+  //         answer: ans,
+  //         submittedAt: new Date(),
+  //         isFinal: true,
+  //       });
+  //     }
+  //   }
+
+  //   // 3️⃣ mark attempt finished
+  //   await pb.collection("exam_attempts").update(attempt.id, {
+  //     status: "completed",
+  //     endedAt: new Date(),
+  //   });
+
+  //   // clear local state
+  //   set({ examId: null, examName: null, duration: 0, answers: {} });
+  // },
+
+  // ✅ FINISH exam & save to DB with scoring
+// finishExam: async (examId) => {
+//   const { answers } = get();
+//   const userId = pb.authStore.model?.id;
+//   if (!userId) throw new Error("Not logged in");
+
+//   // 1️⃣ ensure attempt exists
+//   let attempt;
+//   try {
+//     attempt = await pb
+//       .collection("exam_attempts")
+//       .getFirstListItem(`examId="${examId}" && studentId="${userId}"`);
+//   } catch {
+//     attempt = await pb.collection("exam_attempts").create({
+//       examId,
+//       studentId: userId,
+//       startedAt: new Date(),
+//       status: "in_progress",
+//     });
+//   }
+
+//   let score = 0;
+
+//   // 2️⃣ insert/update answers + calculate score
+//   for (const [qId, ans] of Object.entries(answers)) {
+//     // 🔍 fetch correct answer from questions collection
+//     const question = await pb.collection("questions").getOne(qId);
+
+//     // compare ignoring case & spaces
+//     if (question.answer?.toLowerCase().trim() === ans.toLowerCase().trim()) {
+//       score++;
+//     }
+
+//     try {
+//       // if answer exists update else create
+//       const existing = await pb
+//         .collection("exam_answers")
+//         .getFirstListItem(
+//           `examId="${examId}" && studentId="${userId}" && questionId="${qId}"`
+//         );
+//       await pb.collection("exam_answers").update(existing.id, {
+//         answer: ans,
+//         submittedAt: new Date(),
+//         isFinal: true,
+//       });
+//     } catch {
+//       await pb.collection("exam_answers").create({
+//         examId,
+//         studentId: userId,
+//         questionId: qId,
+//         answer: ans,
+//         submittedAt: new Date(),
+//         isFinal: true,
+//       });
+//     }
+//   }
+
+//   // 3️⃣ mark attempt finished + save score
+//   await pb.collection("exam_attempts").update(attempt.id, {
+//     status: "completed",
+//     endedAt: new Date(),
+//     score, // ✅ total correct answers
+//   });
+
+//   // clear local state
+//   set({ examId: null, examName: null, duration: 0, answers: {} });
+// }
+
+
+finishExam: async (examId) => {
+  const { answers } = get();
+  const userId = pb.authStore.model?.id;
+  if (!userId) throw new Error("Not logged in");
+
+  // 1️⃣ ensure attempt exists
+  let attempt;
+  try {
+    attempt = await pb
+      .collection("exam_attempts")
+      .getFirstListItem(`examId="${examId}" && studentId="${userId}"`);
+  } catch {
+    attempt = await pb.collection("exam_attempts").create({
+      examId,
+      studentId: userId,
+      startedAt: new Date(),
+      status: "in_progress",
+    });
+  }
+
+  let score = 0;
+
+  // 🔍 fetch all exam questions first
+  const allQuestions = await pb.collection("questions").getFullList({
+    filter: `examId="${examId}"`,
+  });
+
+  // 2️⃣ iterate over every question
+  for (const question of allQuestions) {
+    const qId = question.id;
+    const ans = answers[qId] || "not answered"; // 👈 default if skipped
+
+    // compare ignoring case & spaces
+    if (
+      ans !== "not answered" &&
+      question.answer?.toLowerCase().trim() === ans.toLowerCase().trim()
+    ) {
+      score++;
+    }
+
     try {
-      attempt = await pb
-        .collection("exam_attempts")
-        .getFirstListItem(`examId="${examId}" && studentId="${userId}"`);
+      // if answer exists update else create
+      const existing = await pb
+        .collection("exam_answers")
+        .getFirstListItem(
+          `examId="${examId}" && studentId="${userId}" && questionId="${qId}"`
+        );
+      await pb.collection("exam_answers").update(existing.id, {
+        answer: ans,
+        submittedAt: new Date(),
+        isFinal: true,
+      });
     } catch {
-      attempt = await pb.collection("exam_attempts").create({
+      await pb.collection("exam_answers").create({
         examId,
         studentId: userId,
-        startedAt: new Date(),
-        status: "in_progress",
+        questionId: qId,
+        answer: ans,
+        submittedAt: new Date(),
+        isFinal: true,
       });
     }
+  }
 
-    // 2️⃣ insert/update answers
-    for (const [qId, ans] of Object.entries(answers)) {
-      try {
-        // if answer exists update else create
-        const existing = await pb
-          .collection("exam_answers")
-          .getFirstListItem(
-            `examId="${examId}" && studentId="${userId}" && questionId="${qId}"`
-          );
-        await pb.collection("exam_answers").update(existing.id, {
-          answer: ans,
-          submittedAt: new Date(),
-          isFinal: true,
-        });
-      } catch {
-        await pb.collection("exam_answers").create({
-          examId,
-          studentId: userId,
-          questionId: qId,
-          answer: ans,
-          submittedAt: new Date(),
-          isFinal: true,
-        });
-      }
-    }
+  // 3️⃣ mark attempt finished + save score
+  await pb.collection("exam_attempts").update(attempt.id, {
+    status: "completed",
+    endedAt: new Date(),
+    score,
+  });
 
-    // 3️⃣ mark attempt finished
-    await pb.collection("exam_attempts").update(attempt.id, {
-      status: "completed",
-      endedAt: new Date(),
-    });
+  // clear local state
+  set({ examId: null, examName: null, duration: 0, answers: {} });
+}
 
-    // clear local state
-    set({ examId: null, examName: null, duration: 0, answers: {} });
-  },
 }));

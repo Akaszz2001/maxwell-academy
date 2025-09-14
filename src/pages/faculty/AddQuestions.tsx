@@ -83,6 +83,8 @@ useEffect(() => {
         };
       })
       .filter((q) => q.questionText);
+      console.log("ADD QUESTION JSX",newQuestions);
+      
     await addBulkQuestions(examId, newQuestions);
     setCsvFile(null);
   };
@@ -95,17 +97,21 @@ useEffect(() => {
     const data = await xlsxFile.arrayBuffer();
     const workbook = XLSX.read(data);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows: any[] = XLSX.utils.sheet_to_json(sheet);
 
     const newQuestions = rows.map((row) => ({
       type: "text",
-      questionText: row.question,
-      optionA: row["opt A"],
-      optionB: row["opt B"],
-      optionC: row["opt C"],
-      optionD: row["opt D"],
-      answer: row.ans?.toString().toLowerCase(),
+      questionText: row.questionText,
+      optionA: row["optionA"],
+      optionB: row["optionB"],
+      optionC: row["optionC"],
+      optionD: row["optionD"],
+      answer: row.answer?.toString().toLowerCase(),
     }));
+
+    console.log(newQuestions);
+    
     await addBulkQuestions(examId, newQuestions);
     setXlsxFile(null);
   };
