@@ -14,46 +14,96 @@ export default function ExamList() {
     fetchAllExams();
   }, [fetchAllExams]);
 
-  const handleStart = async (examId: string) => {
-    const userId = pb.authStore.model?.id;
-    const questions = await pb.collection("questions").getFullList<Question>({
-        filter: `examId="${examId}"`,
-      });
+  // const handleStart = async (examId: string) => {
+  //   const userId = pb.authStore.model?.id;
+  //   const questions = await pb.collection("questions").getFullList<Question>({
+  //       filter: `examId="${examId}"`,
+  //     });
 
      
-  if(questions.length==0){
-    console.log("hello");
-    toast.info("Exam is setting questions are on the way...")
-     return
-      }
-    if (!userId) {
-      alert("Please login first.");
+  // if(questions.length==0){
+  //   console.log("hello");
+  //   toast.info("Exam is setting questions are on the way...")
+  //    return
+  //     }
+  //   if (!userId) {
+  //     alert("Please login first.");
+  //     return;
+  //   }
+
+  //   try {
+  //     // Check if user already attempted this exam
+  //     const attempt = await pb.collection("exam_attempts").getFirstListItem(
+  //       `examId="${examId}" && studentId="${userId}"`,
+  //       { requestKey: null } // prevent cache
+  //     );
+
+  //     console.log("ExamList",attempt.status);
+      
+
+  //     if (attempt && attempt.status.includes("completed")) {
+  //       toast.dark("You have already completed this exam. Retake not allowed.");
+      
+  //       return;
+  //     }
+  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  //   } catch (err) {
+  //     // If no record, it's fine → continue
+  //   }
+
+  //   // If not attempted → allow exam
+  //   navigate(`/student/dashboard/allExams/${examId}`);
+  // };
+
+  const handleStart = async (examId: string) => {
+  const userId = pb.authStore.model?.id;
+
+  // 1. Get active exam_questions
+  const examQuestions = await pb.collection("exam_questions").getFullList({
+    filter: `examId="${examId}" && isActive=true`,
+  });
+
+  if (examQuestions.length === 0) {
+    toast.info("Exam is setting, questions are on the way...");
+    return;
+  }
+
+  // 2. Collect questionIds
+  const questionIds = examQuestions.map((eq) => eq.questionId);
+
+  // 3. Fetch questions by their IDs
+  const questions = await pb.collection("questions").getFullList<Question>({
+    filter: questionIds.map((id) => `id="${id}"`).join(" || "),
+  });
+
+  if (questions.length === 0) {
+    toast.info("Questions not found for this exam.");
+    return;
+  }
+
+  if (!userId) {
+    alert("Please login first.");
+    return;
+  }
+
+  try {
+    // Check if user already attempted this exam
+    const attempt = await pb.collection("exam_attempts").getFirstListItem(
+      `examId="${examId}" && studentId="${userId}"`,
+      { requestKey: null }
+    );
+
+    if (attempt && attempt.status.includes("completed")) {
+      toast.dark("You have already completed this exam. Retake not allowed.");
       return;
     }
+  } catch (err) {
+    // No record found → continue
+  }
 
-    try {
-      // Check if user already attempted this exam
-      const attempt = await pb.collection("exam_attempts").getFirstListItem(
-        `examId="${examId}" && studentId="${userId}"`,
-        { requestKey: null } // prevent cache
-      );
-
-      console.log("ExamList",attempt.status);
-      
-
-      if (attempt && attempt.status.includes("completed")) {
-        toast.dark("You have already completed this exam. Retake not allowed.");
-      
-        return;
-      }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
-      // If no record, it's fine → continue
-    }
-
-    // If not attempted → allow exam
-    navigate(`/student/dashboard/allExams/${examId}`);
-  };
+  // Allow exam
+  navigate(`/student/dashboard/allExams/${examId}`);
+};
 
   if (isLoading) return <div className="p-6">Loading exams...</div>;
   if (error) return <div className="p-6 text-red-500">{error}</div>;

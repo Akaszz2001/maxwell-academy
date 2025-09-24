@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // src/pages/student/ExamReview.tsx
 import React, { useEffect, useState } from "react";
 import { useExamResultStore } from "../../store/examResultStore";
 import { useAuthStore } from "../../store/authStore";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -13,54 +14,42 @@ import {
   TableBody,
   Chip,
   Dialog,
-  Button,
-  Grid,
 } from "@mui/material";
 import pb from "@/services/pocketbase";
 
-const ExamReview: React.FC = () => {
-  const { examId } = useParams();
+const StudentExamResults: React.FC = () => {
+  const { examId,studentId } = useParams();
   const { answers, fetchExamAnswers } = useExamResultStore();
   const { user } = useAuthStore();
-  const navigate = useNavigate();
 
   // 🔹 state for modal
   const [openImage, setOpenImage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (examId && user) {
-      fetchExamAnswers(examId, user.id);
+ const fetchStudentResults=async()=>{
+  if(examId && studentId){
+    try {
+      console.log(answers);
+      
+      fetchExamAnswers(examId,studentId)
+    } catch (error) {
+      console.log(error);
+      
     }
-  }, [examId, user, fetchExamAnswers]);
+  }
+
+ }
+ 
+  fetchStudentResults()
+  }, [examId,studentId,answers]);
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3 }, width: "100%", overflowX: "auto" }}>
-      <Grid
-        container
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 3 }}
-      >
-        <Grid item>
-          <Typography variant="h5">Exam Review</Typography>
-        </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => navigate("/student/dashboard")}
-          >
-            Back to Dashboard
-          </Button>
-        </Grid>
-      </Grid>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h5" gutterBottom>
+        Exam Review
+      </Typography>
 
-      <Table
-        sx={{
-          minWidth: 300,
-          "& img": { maxWidth: { xs: 100, sm: 120 }, cursor: "pointer" },
-        }}
-      >
+      <Table>
         <TableHead>
           <TableRow>
             <TableCell>Question</TableCell>
@@ -87,6 +76,7 @@ const ExamReview: React.FC = () => {
                     <img
                       src={q.image ? pb.files.getUrl(q, q.image) : ""}
                       alt="question"
+                      style={{ width: 120, cursor: "pointer" }}
                       onClick={() =>
                         setOpenImage(pb.files.getUrl(q, q.image) || null)
                       }
@@ -96,7 +86,7 @@ const ExamReview: React.FC = () => {
 
                 <TableCell>
                   {q.type === "text" ? (
-                    <ul style={{ paddingLeft: "1rem", margin: 0 }}>
+                    <ul>
                       <li>{q.optionA}</li>
                       <li>{q.optionB}</li>
                       <li>{q.optionC}</li>
@@ -141,4 +131,4 @@ const ExamReview: React.FC = () => {
   );
 };
 
-export default ExamReview;
+export default StudentExamResults;

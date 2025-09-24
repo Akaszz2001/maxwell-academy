@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server:{
     allowedHosts:[
-        "c337c6b2921c.ngrok-free.app"
+        "san-retreat-providing-rarely.trycloudflare.com"
     ]
   }
 })

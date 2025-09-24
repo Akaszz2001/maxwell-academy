@@ -1,0 +1,62 @@
+import { useState } from "react";
+import StudentDashboard from "./StudentDashboard";
+import StudentSidebar from "@/components/StudentSidebar";
+import { Menu } from "lucide-react";
+import ExamList from "./ExamList";
+import ExamResults from "./ExamResults";
+import ExamReview from "./ExamReview";
+
+export default function StudentLayout() {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [activeRoute, setActiveRoute] = useState("dashboard");
+
+  const renderContent = () => {
+    switch (activeRoute) {
+      case "dashboard":
+        return <StudentDashboard />;
+      case "exams":
+        return <ExamList/>
+      case "results":
+        return <ExamResults/>
+      case "study-groups":
+        return <ExamReview/>
+      case "settings":
+        return <div className="p-8"><h1 className="text-2xl font-bold">Settings</h1></div>;
+      default:
+        return <StudentDashboard />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex">
+      <StudentSidebar
+        isSidebarOpen={isSidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        activeRoute={activeRoute}
+        setActiveRoute={setActiveRoute}
+      />
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Mobile Header */}
+        <div className="lg:hidden bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-200 px-4 py-3 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => setSidebarOpen(true)} 
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg font-semibold text-gray-800">Student Portal</h1>
+            <div className="w-9" />
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-auto">
+          {renderContent()}
+        </div>
+      </div>
+    </div>
+  );
+}

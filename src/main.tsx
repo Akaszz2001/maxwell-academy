@@ -11,7 +11,7 @@ import Navbar from './assets/Navbar.tsx'
 createRoot(document.getElementById('root')!).render(
 <Router>
 <ToastContainer position="top-right" autoClose={3000} />
-<Navbar />
+{/* <Navbar /> */}
     <App />
     </Router>
 )

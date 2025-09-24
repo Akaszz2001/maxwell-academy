@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from "react";
 import { useParams ,useNavigate} from "react-router-dom";
 import { useExamSessionStore } from "../../store/examSessionStore";
 import pb from "../../services/pocketbase";
 import { useNavigationBlocker } from "../../services/useNavigationBlocker";
+import { toast } from "react-toastify";
 
 // ---------------------- TYPES ----------------------
 type Question = {
@@ -50,6 +52,33 @@ export default function ExamWindow() {
 const navigate=useNavigate()
 
 
+useEffect(() => {
+  const handlePageShow = async (e: PageTransitionEvent) => {
+    if (examId && userId) {
+      try {
+        const attempt = await pb
+          .collection("exam_attempts")
+          .getFirstListItem(
+            `examId="${examId}" && studentId="${userId}"`,
+            { $autoCancel: false } // prevent auto cancel
+          );
+
+        console.log("Attempt:", attempt);
+
+        if (attempt.status.includes("completed")) {
+          navigate("/student/dashboard/", { replace: true });
+        }
+      } catch (err) {
+      console.log(err)
+      
+      }
+    }
+  };
+
+  window.addEventListener("pageshow", handlePageShow);
+  return () => window.removeEventListener("pageshow", handlePageShow);
+}, [examId, userId, navigate]);
+
   // Fetch exam + questions
   useEffect(() => {
     const fetchExamData = async () => {
@@ -61,13 +90,13 @@ const navigate=useNavigate()
         const existing = await pb
           .collection("exam_attempts")
           .getFirstListItem(`examId="${examId}" && studentId="${userId}"`);
-          console.log("CHECKING",existing);
+     
         setAttempt(existing as ExamAttempt)
-        console.log(attempt)
-        
-        if (existing && existing.status === "finished") {
-          alert("You have already completed this exam. Retake not allowed.");
-          navigate("/student/dashboard/allExams"); // 👈 redirect
+    
+        console.log(existing);
+       if (existing.status.includes("completed")) {
+          toast.dark("You have already completed this exam. Retake not allowed.");
+          navigate("/student/dashboard/"); // 👈 redirect
           return;
         }
       } catch {
@@ -76,11 +105,16 @@ const navigate=useNavigate()
   
       // 2️⃣ load exam + questions
       const exam = await pb.collection("exams").getOne<Exam>(examId!);
-      const questions = await pb.collection("questions").getFullList<Question>({
-        filter: `examId="${examId}"`,
-      });
+       const examQuestions = await pb.collection("exam_questions").getFullList({
+          filter: `examId="${examId}" && isActive=true`,
+        });
+       const questionIds = examQuestions.map((eq) => eq.questionId);
 
-      console.log("EXAM WINDOW FETCH QUESTIONS ",questions);
+      const questions = await pb.collection("questions").getFullList<Question>({
+    filter: questionIds.map((id) => `id="${id}"`).join(" || "),
+  });
+
+   
     
 
   
@@ -94,7 +128,7 @@ const navigate=useNavigate()
     fetchExamData();
   }, [examId]);
   
-console.log("exam window ",questions);
+
 
 
 
@@ -120,7 +154,7 @@ useNavigationBlocker(() => {
 
       if (confirmLeave && examId) {
         await finishExam(examId); // ✅ submit exam
-        navigate("/student/dashboard/allExams", { replace: true });
+        navigate("/student/dashboard/", { replace: true });
       } else {
         // stay on page
         window.history.pushState(null, "", window.location.pathname);
@@ -234,7 +268,7 @@ useEffect(() => {
       localStorage.removeItem(`exam_${exam.id}_answers`);
       localStorage.removeItem(`exam_${exam.id}_time`);
       alert("Exam submitted successfully!");
-      navigate("/student/dashboard/allExams")
+      navigate("/student/dashboard/")
     });
   };
 
@@ -247,89 +281,188 @@ useEffect(() => {
   if (!exam) return <p>Loading exam...</p>;
 
   return (
-    <div className="flex h-screen">
-      {/* Left Sidebar - Question Navigator */}
-      <div className="w-1/5 p-4 border-r overflow-y-auto">
-        <h2 className="text-lg font-bold mb-4">Questions</h2>
-        <div className="grid grid-cols-4 gap-2">
-          {questions.map((q, idx) => (
-            <button
-              key={q.id}
-              onClick={() => setCurrent(idx)}
-              className={`p-2 rounded text-sm ${
-                idx === current
-                  ? "bg-blue-500 text-white"
-                  : answers[q.id]
-                  ? "bg-green-400 text-white"
-                  : "bg-gray-200"
-              }`}
-            >
-              {idx + 1}
-            </button>
-          ))}
-        </div>
-      </div>
+    
+//     <div className="flex h-screen">
+//       {/* Left Sidebar - Question Navigator */}
+//       <div className="w-1/5 p-4 border-r overflow-y-auto">
+//         <h2 className="text-lg font-bold mb-4">Questions</h2>
+//         <div className="grid grid-cols-4 gap-2">
+//           {questions.map((q, idx) => (
+//             <button
+//               key={q.id}
+//               onClick={() => setCurrent(idx)}
+//               className={`p-2 rounded text-sm ${
+//                 idx === current
+//                   ? "bg-blue-500 text-white"
+//                   : answers[q.id]
+//                   ? "bg-green-400 text-white"
+//                   : "bg-gray-200"
+//               }`}
+//             >
+//               {idx + 1}
+//             </button>
+//           ))}
+//         </div>
+//       </div>
 
-      {/* Right Section */}
-      <div className="flex-1 p-6 flex flex-col">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-bold">{exam.name}</h1>
-          <span className="text-lg font-mono bg-black text-white px-4 py-1 rounded">
-            {formatTime(timeLeft)}
-          </span>
-        </div>
+//       {/* Right Section */}
+//       <div className="flex-1 p-6 flex flex-col">
+//         <div className="flex justify-between items-center mb-6">
+//           <h1 className="text-xl font-bold">{exam.name}</h1>
+//           <span className="text-lg font-mono bg-black text-white px-4 py-1 rounded">
+//             {formatTime(timeLeft)}
+//           </span>
+//         </div>
 
-        <div className="flex-1">
-        {q?.type === "image" ? (
-  <img
-    src={getFileUrl("questions", q.id, q.image!)} 
-    alt="Question"
-    className="max-w-md mx-auto mb-4"
-  />
-) : (
-  <p className="text-lg mb-4">{q?.questionText}</p>
-)}
+//         <div className="flex-1">
+//         {q?.type === "image" ? (
+//   <img
+//     src={getFileUrl("questions", q.id, q.image!)} 
+//     alt="Question"
+//     className="max-w-md mx-auto mb-4"
+//   />
+// ) : (
+//   <p className="text-lg mb-4">{q?.questionText}</p>
+// )}
 
 
-          <div className="space-y-2">
-            {["A", "B", "C", "D"].map((opt) => (
-              <label key={opt} className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name={q.id}
-                  value={opt.toLowerCase()}
-                  checked={selected === opt.toLowerCase()}
-                  onChange={() => saveAnswer(q.id, opt.toLowerCase())}
-                />
-                <span>{q[`option${opt}` as keyof Question]}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+//           <div className="space-y-2">
+//             {["A", "B", "C", "D"].map((opt) => (
+//               <label key={opt} className="flex items-center space-x-2">
+//                 <input
+//                   type="radio"
+//                   name={q.id}
+//                   value={opt.toLowerCase()}
+//                   checked={selected === opt.toLowerCase()}
+//                   onChange={() => saveAnswer(q.id, opt.toLowerCase())}
+//                 />
+//                 <span>{q[`option${opt}` as keyof Question]}</span>
+//               </label>
+//             ))}
+//           </div>
+//         </div>
 
-        <div className="mt-6 flex justify-between">
-          <button
-            disabled={current === 0}
-            onClick={() => setCurrent((prev) => prev - 1)}
-            className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <button
-            disabled={current === questions.length - 1}
-            onClick={() => setCurrent((prev) => prev + 1)}
-            className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-          <button
-            onClick={handleFinish}
-            className="px-6 py-2 bg-red-500 text-white rounded"
-          >
-            Finish Exam
-          </button>
-        </div>
-      </div>
+//         <div className="mt-6 flex justify-between">
+//           <button
+//             disabled={current === 0}
+//             onClick={() => setCurrent((prev) => prev - 1)}
+//             className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+//           >
+//             Previous
+//           </button>
+//           <button
+//             disabled={current === questions.length - 1}
+//             onClick={() => setCurrent((prev) => prev + 1)}
+//             className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+//           >
+//             Next
+//           </button>
+//           <button
+//             onClick={handleFinish}
+//             className="px-6 py-2 bg-red-500 text-white rounded"
+//           >
+//             Finish Exam
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+
+<div className="flex flex-col md:flex-row h-screen">
+  {/* Left Sidebar - Question Navigator */}
+  <div className="w-full md:w-1/5 p-4 border-b md:border-b-0 md:border-r overflow-y-auto">
+    <h2 className="text-lg font-bold mb-4 text-center md:text-left">
+      Questions
+    </h2>
+    <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-4 gap-2">
+      {questions.map((q, idx) => (
+        <button
+          key={q.id}
+          onClick={() => setCurrent(idx)}
+          className={`p-2 rounded text-sm transition ${
+            idx === current
+              ? "bg-blue-500 text-white shadow"
+              : answers[q.id]
+              ? "bg-green-400 text-white"
+              : "bg-gray-200 hover:bg-gray-300"
+          }`}
+        >
+          {idx + 1}
+        </button>
+      ))}
     </div>
+  </div>
+
+  {/* Right Section */}
+  <div className="flex-1 p-4 sm:p-6 flex flex-col">
+    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
+      <h1 className="text-lg sm:text-xl font-bold text-center sm:text-left">
+        {exam.name}
+      </h1>
+      <span className="text-base sm:text-lg font-mono bg-black text-white px-3 sm:px-4 py-1 rounded">
+        {formatTime(timeLeft)}
+      </span>
+    </div>
+
+    <div className="flex-1">
+      {q?.type === "image" ? (
+        <img
+          src={getFileUrl("questions", q.id, q.image!)}
+          alt="Question"
+          className="w-full max-w-md mx-auto mb-4 rounded-lg shadow"
+        />
+      ) : (
+        <p className="text-base sm:text-lg mb-4 text-center sm:text-left">
+          {q?.questionText}
+        </p>
+      )}
+<div className="space-y-2">
+  {["A", "B", "C", "D"].map((opt) => (
+    <label
+      key={opt}
+      className="flex items-center space-x-2 p-2 border rounded hover:bg-gray-100 cursor-pointer"
+    >
+      <input
+        type="radio"
+        name={q.id}
+        value={opt.toLowerCase()}
+        checked={selected === opt.toLowerCase()}
+        onChange={() => saveAnswer(q.id, opt.toLowerCase())}
+        className="accent-blue-500"
+      />
+      {q?.type === "image" ? (
+        <span className="font-bold">{opt}</span>
+      ) : null}
+      <span>{q[`option${opt}` as keyof Question]}</span>
+    </label>
+  ))}
+</div>
+
+    </div>
+
+    <div className="mt-6 flex flex-col sm:flex-row justify-between gap-3">
+      <button
+        disabled={current === 0}
+        onClick={() => setCurrent((prev) => prev - 1)}
+        className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50 hover:bg-gray-400 transition"
+      >
+        Previous
+      </button>
+      <button
+        disabled={current === questions.length - 1}
+        onClick={() => setCurrent((prev) => prev + 1)}
+        className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50 hover:bg-gray-400 transition"
+      >
+        Next
+      </button>
+      <button
+        onClick={handleFinish}
+        className="px-6 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+      >
+        Finish Exam
+      </button>
+    </div>
+  </div>
+</div>
+
   );
 }

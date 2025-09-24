@@ -128,7 +128,12 @@ updateExam: (id: string, data: Partial<Exam>) => Promise<{
   data?: Exam;
   error?: string;
 }>;
-  deactivateExam: (id: string) => Promise<void>; // ✅
+duplicateExam: (
+  examId: string,
+  newExamData?: Partial<Exam>
+) => Promise<Exam | null>;
+
+  deactivateExam: (id: string) => Promise<void>;
 }
 
 export const useExamStore = create<ExamState>((set) => ({
@@ -164,12 +169,14 @@ export const useExamStore = create<ExamState>((set) => ({
   },
 
   fetchExamsByUser: async (userId) => {
+    console.log("FACULTY EXAMS ID",userId)
     try {
       set({ isLoading: true, error: null });
       const result = await pb.collection("exams").getFullList<Exam>({
         filter: `createdBy="${userId}"`,
         sort: "-created",
       });
+        console.log("FACULTY EXAMS results",result)
       set({ exams: result, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
@@ -247,47 +254,97 @@ console.log("UPDATED EXAM",updated);
   }
 },
 
-  duplicateExam: async (examId: string, newExamData: Partial<Exam>) => {
+// duplicateExam: async (examId: string, newExamData?: Partial<Exam>) => {
+//   try {
+//     set({ isLoading: true, error: null });
+
+//     const originalExam = await pb.collection("exams").getOne<Exam>(examId);
+
+//     const { user } = useAuthStore.getState();
+//     if (!user) throw new Error("Not authenticated");
+
+//     const newExam = await pb.collection("exams").create({
+//       ...originalExam,
+//       ...newExamData,
+//       createdBy: user.id,
+//       isActive: true,
+//     });
+
+//     const exam = newExam as unknown as Exam;
+
+//     // copy exam_questions
+//     const mappings = await pb.collection("exam_questions").getFullList({
+//       filter: `examId="${examId}"`,
+//     });
+
+//     for (const m of mappings) {
+//       await pb.collection("exam_questions").create({
+//         examId: exam.id,
+//         questionId: m.questionId,
+//         isActive: m.isActive,
+//       });
+//     }
+
+//     set((state) => ({
+//       exams: [...state.exams, exam],
+//       isLoading: false,
+//     }));
+
+//     return exam;
+//   } catch (err: any) {
+//     console.log("duplicate exam error ",err);
+    
+//     set({ error: err.message, isLoading: false });
+//     return null; // 🔥 matches return type
+//   }
+// },
+duplicateExam: async (examId: string, newExamData?: Partial<Exam>) => {
   try {
     set({ isLoading: true, error: null });
 
-    // 1. Get original exam
     const originalExam = await pb.collection("exams").getOne<Exam>(examId);
 
-    // 2. Create new exam
     const { user } = useAuthStore.getState();
     if (!user) throw new Error("Not authenticated");
 
+    // Remove system fields PocketBase won’t accept
+    const { id, created, updated, expand, ...cleanExam } = originalExam;
+
     const newExam = await pb.collection("exams").create({
-      ...originalExam,
-      ...newExamData, // allow overriding name, subject, etc.
+      ...cleanExam,
+      ...newExamData,
       createdBy: user.id,
       isActive: true,
+      name: `${originalExam.name} (Copy)`, // make sure name is unique
     });
 
-    // 3. Copy exam_questions mappings
+    const exam = newExam as unknown as Exam;
+
+    // copy exam_questions
     const mappings = await pb.collection("exam_questions").getFullList({
       filter: `examId="${examId}"`,
     });
 
     for (const m of mappings) {
-      await pb.collection("exam_questions").create({
-        examId: newExam.id,
-        questionId: m.questionId,
-        isActive: m.isActive,
-      });
+       console.log("Copying question mapping:", m);
+      
+     await pb.collection("exam_questions").create({
+  examId: [exam.id],
+  questionId: [m.questionId],
+  isActive: m.isActive,
+});
     }
 
     set((state) => ({
-      exams: [...state.exams, newExam as unknown as Exam],
+      exams: [...state.exams, exam],
       isLoading: false,
     }));
 
-    return newExam;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return exam;
   } catch (err: any) {
+    console.log("duplicate exam error", err);
     set({ error: err.message, isLoading: false });
-    throw err;
+    return null;
   }
 }
 
