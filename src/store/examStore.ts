@@ -109,7 +109,11 @@ export interface Exam {
   updated: string;
   isActive?: boolean; // ✅ to support deactivate
 }
-
+export interface CategorizedExams {
+  upcomingExams: Exam[];
+  completedExams: Exam[];
+  missedExams: Exam[];
+}
 interface ExamState {
   exams: Exam[];
   isLoading: boolean;
@@ -134,6 +138,7 @@ duplicateExam: (
 ) => Promise<Exam | null>;
 
   deactivateExam: (id: string) => Promise<void>;
+  fetchAndCategorizeExams: () => Promise<CategorizedExams>;
 }
 
 export const useExamStore = create<ExamState>((set) => ({
@@ -346,6 +351,47 @@ duplicateExam: async (examId: string, newExamData?: Partial<Exam>) => {
     set({ error: err.message, isLoading: false });
     return null;
   }
-}
+},
+  fetchAndCategorizeExams: async () => {
+    try {
+      set({ isLoading: true, error: null });
 
+      const { user } = useAuthStore.getState();
+      if (!user) throw new Error("Not logged in");
+
+      // fetch all exams
+      const allExams = await pb.collection("exams").getFullList<Exam>({
+        sort: "startTime",
+      });
+
+      // fetch all attempts by this user
+      const attempts = await pb.collection("exam_attempts").getFullList({
+        filter: `studentId="${user.id}"`,
+      });
+
+      const now = new Date();
+      const upcomingExams: Exam[] = [];
+      const completedExams: Exam[] = [];
+      const missedExams: Exam[] = [];
+
+      allExams.forEach((exam) => {
+        const examDate = new Date(exam.startTime);
+        const attempt = attempts.find((a) => a.examId === exam.id);
+
+        if (attempt && attempt.status.includes('completed')) {
+          completedExams.push(exam);
+        } else if (examDate > now) {
+          upcomingExams.push(exam);
+        } else {
+          missedExams.push(exam);
+        }
+      });
+
+      set({ isLoading: false });
+      return { upcomingExams, completedExams, missedExams };
+    } catch (err: any) {
+      set({ error: err.message, isLoading: false });
+      throw err;
+    }
+  },
 }));

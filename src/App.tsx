@@ -91,11 +91,22 @@ import StudentExamResults from "./pages/faculty/StudentExamResults";
 
 import Navbar from "./assets/Navbar";
 import StudentLayout from "./pages/student/StudentLayout";
+import FacultyLayout from "./pages/faculty/FacultyLayout";
 const noNavbarPatterns: RegExp[] = [
   /^\/student\/dashboard\/?$/,                     // student dashboard exact
   /^\/student\/dashboard\/allExams\/?$/,          // allExams list
   /^\/student\/dashboard\/allExams\/\w+$/,       // exam window (dynamic examId)
   /^\/student\/dashboard\/attendedExams\/\w+$/,       // exam window (dynamic examId)
+  /^\/faculty\/dashboard\/?$/,   
+  /^\/faculty\/dashboard\/exams\/\w+\/edit$/,   
+  
+  /^\/faculty\/dashboard\/exams\/\w+\/questions\/add$/,
+  
+  /^\/faculty\/dashboard\/studentResults\/\w+\/studentList$/,
+  /^\/faculty\/dashboard\/exams\/\w+\/questions$/,
+  
+  /^\/faculty\/dashboard\/studentResults\/\w+\/studentList\/\w+$/, 
+  // exam window (dynamic examId)
   // Add more patterns as needed
 ];
 
@@ -154,7 +165,7 @@ function App() {
           {/* faculty routes */}
           <Route
             path="/faculty/dashboard"
-            element={<RequireAuth role="faculty"><FacultyDashboard /></RequireAuth>}
+            element={<RequireAuth role="faculty"><FacultyLayout /></RequireAuth>}
           />
           <Route
             path="/faculty/dashboard/createExam"

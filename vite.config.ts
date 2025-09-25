@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server:{
     allowedHosts:[
-        "san-retreat-providing-rarely.trycloudflare.com"
+        "learning-phones-compression-pope.trycloudflare.com"
     ]
   }
 })

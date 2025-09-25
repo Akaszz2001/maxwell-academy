@@ -156,7 +156,7 @@ export default function Login() {
             <span className="text-gray-600">Don’t have an account? </span>
             <button
               type="button"
-              onClick={handleSignUp}
+              onClick={()=>navigate("/signup")}
               className="text-blue-600 hover:text-blue-800 font-semibold"
             >
               Sign up
