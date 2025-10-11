@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import StudentDashboard from "./StudentDashboard";
 import StudentSidebar from "@/components/StudentSidebar";
 import { Menu } from "lucide-react";
 import ExamList from "./ExamList";
 import ExamResults from "./ExamResults";
 import ExamReview from "./ExamReview";
+import AnnouncementList from "../AnnouncementList";
+import { useAnnouncementStore } from "@/store/announcementStore";
+import { useAuthStore } from "@/store/authStore";
 
 export default function StudentLayout() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [activeRoute, setActiveRoute] = useState("dashboard");
-
+   const [hasUnread, setHasUnread] = useState(false);
+    const {fetchAnnouncementsForNotfications,announcements}=useAnnouncementStore()
+const {user}=useAuthStore()
   const renderContent = () => {
     switch (activeRoute) {
       case "dashboard":
@@ -20,6 +25,8 @@ export default function StudentLayout() {
         return <ExamResults/>
       case "study-groups":
         return <ExamReview/>
+      case "Notifications":
+        return <AnnouncementList/>
       case "settings":
         return <div className="p-8"><h1 className="text-2xl font-bold">Settings</h1></div>;
       default:
@@ -27,6 +34,26 @@ export default function StudentLayout() {
     }
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      // Your async logic here
+      await fetchAnnouncementsForNotfications('student');
+    };
+  
+    fetchData();
+  }, [fetchAnnouncementsForNotfications]);
+  
+useEffect(() => {
+  // current logged-in user
+  if (!user.id) return;
+
+  const visitedByUser = JSON.parse(localStorage.getItem("visitedAnnouncements") || "{}");
+
+  const userVisited = visitedByUser[user.id] || [];
+
+  const unread = announcements.some((a) => !userVisited.includes(a.id));
+  setHasUnread(unread);
+}, [announcements, user]);
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex">
       <StudentSidebar
@@ -45,7 +72,12 @@ export default function StudentLayout() {
               onClick={() => setSidebarOpen(true)} 
               className="p-2 rounded-md hover:bg-gray-100 transition-colors"
             >
-              <Menu className="w-5 h-5" />
+              <div className="relative inline-block">
+  <Menu className="w-5 h-5" />
+  {hasUnread && (
+    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
+  )}
+</div>
             </button>
             <h1 className="text-lg font-semibold text-gray-800">Student Portal</h1>
             <div className="w-9" />

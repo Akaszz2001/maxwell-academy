@@ -13,7 +13,10 @@ export interface Question {
   optionC?: string;
   optionD?: string;
   answer: string;
+  subject: string
   image?: string; // PocketBase file url
+   topic?:string;
+  classs?:string;
   created: string;
   updated: string;
 }
@@ -24,14 +27,20 @@ interface QuestionState {
   error: string | null;
 
   fetchQuestions: (examId: string) => Promise<void>;
+  getUniqueSubjects: () => Promise<string[]>;
+getQuestionsBySubject: (subject: string) => Promise<Question[]>;
+getQuestionsBySubjectClassTopic: (subject: string,topic:string,classs:string) => Promise<Question[]>;
   // inside QuestionState
-getQuestionsByExam: (
-    examId: string
-  ) => Promise<{ active: Question[]; others: Question[] }>;
 
+getAllQuestionsByExam: () => Promise<{ allQuestions: Question[]}>;
+ getUniqueClassesBySubject: (subject: string) => Promise<string[]>; // ✅ new
+  getUniqueTopics: (subject: string, className: string) => Promise<string[]>; // ✅ new
   addBulkQuestions: (examId: string, newQuestions: any[]) => Promise<void>;
    updateQuestion: (id: string, data: Partial<Question>) => Promise<Question>;
     deactivateQuestion: (examId: string, questionId: string) => Promise<void>;
+    getQuestionsByExam: (
+    examId: string
+  ) => Promise<{ active: Question[]; others: Question[] }>;
   }
 
 export const useQuestionStore = create<QuestionState>((set) => ({
@@ -93,7 +102,8 @@ fetchQuestions: async (examId: string) => {
         optionC: q.optionC,
         optionD: q.optionD,
         answer: q.answer,
-        image: q.image ? pb.files.getUrl(q, q.image) : undefined,
+        subject:q.subject,
+        image: q.image ? pb.files.getURL(q, q.image) : undefined,
         created: q.created,
         updated: q.updated,
         isActive: rec.isActive,
@@ -106,7 +116,85 @@ fetchQuestions: async (examId: string) => {
   }
 },
 
+getQuestionsBySubject: async (subject: string): Promise<Question[]> => {
+  try {
+    const records = await pb.collection("questions").getFullList({
+      filter: `subject="${subject}"`,
+      sort: "-created",
+    });
 
+    const questions: Question[] = records.map((q: any) => ({
+      id: q.id,
+      examId: q.examId,
+      type: q.type,
+      questionText: q.questionText,
+      optionA: q.optionA,
+      optionB: q.optionB,
+      optionC: q.optionC,
+      optionD: q.optionD,
+      subject: q.subject,
+      answer: q.answer,
+      image: q.image ? pb.files.getURL(q, q.image) : undefined,
+      created: q.created,
+      updated: q.updated,
+      isActive: q.isActive,
+    }));
+
+    return questions;
+  } catch (err: any) {
+    console.error("Error fetching questions by subject:", err.message);
+    throw err;
+  }
+},
+getUniqueSubjects: async (): Promise<string[]> => {
+  try {
+    const records = await pb.collection("questions").getFullList({
+      fields: "subject",
+    });
+
+    const subjects = records
+      .map((q: any) => q.subject)
+      .filter((s: string | null | undefined) => !!s); // remove null/empty
+
+    const uniqueSubjects = Array.from(new Set(subjects));
+
+    return uniqueSubjects;
+  } catch (err: any) {
+    console.error("Error fetching subjects:", err.message);
+    throw err;
+  }
+},
+
+
+getUniqueClassesBySubject: async (subject: string): Promise<string[]> => {
+  try {
+    const records = await pb.collection("questions").getFullList({
+      filter: `subject="${subject}"`,
+      fields: "classs",
+    });
+
+    const classes = records.map((q: any) => q.classs).filter(Boolean);
+    return Array.from(new Set(classes));
+  } catch (err: any) {
+    console.error("Error fetching classes:", err.message);
+    throw err;
+  }
+},
+
+getUniqueTopics: async (subject: string, classs: string): Promise<string[]> => {
+  try {
+    const records = await pb.collection("questions").getFullList({
+      filter: `subject="${subject}" && classs="${classs}"`,
+      fields: "topic",
+    });
+
+    const topics = records.map((q: any) => q.topic).filter(Boolean);
+    return Array.from(new Set(topics));
+  } catch (err: any) {
+    console.error("Error fetching topics:", err.message);
+    throw err;
+  }
+},
 
 
   addBulkQuestions: async (examId: string, newQuestions: any[]) => {
@@ -131,12 +219,18 @@ fetchQuestions: async (examId: string) => {
           optionC: q.optionC,
           optionD: q.optionD,
           answer: q.answer?.toLowerCase(),
+          subject:q.subject?.toLowerCase(),
+          topic:q.topic?.toLowerCase(),
+          classs:q.classs?.toLowerCase()
         });
       } else if (q.type === "image" && q.imageFile) {
         const formData = new FormData();
            formData.append("examId", examId);
+           formData.append("subject",q.subject)
         formData.append("type", "image");
         formData.append("answer", q.answer?.toLowerCase() || "");
+        formData.append("classs", q.classs?.toLowerCase() || "");
+        formData.append("topic", q.topic?.toLowerCase() || "");
         formData.append("image", q.imageFile);
 
         createdQuestion = await pb.collection("questions").create(formData);
@@ -173,6 +267,7 @@ fetchQuestions: async (examId: string) => {
         optionC: q.optionC,
         optionD: q.optionD,
         answer: q.answer,
+        subject:q.subject,
         image: q.image ? pb.files.getURL(q, q.image) : undefined,
         created: q.created,
         updated: q.updated,
@@ -184,108 +279,73 @@ fetchQuestions: async (examId: string) => {
     set({ error: err.message, isLoading: false });
     throw err;
   }
-},
-// getQuestionsByExam: async (examId: string): Promise<Question[]> => {
-//   try {
-//     const records = await pb.collection("exam_questions").getFullList({
-//       filter: `examId="${examId}" && isActive=true`,
-//       expand: "questionId",
-//       sort: "-created",
-//     });
-
-//     const mapped: Question[] = records
-//       .filter((rec: any) => rec.expand?.questionId) 
-//       .map((rec: any) => {
-//         const q = rec.expand.questionId;
-//         return {
-//           id: q.id,
-//           examId: rec.examId,
-//           type: q.type,
-//           questionText: q.questionText,
-//           optionA: q.optionA,
-//           optionB: q.optionB,
-//           optionC: q.optionC,
-//           optionD: q.optionD,
-//           answer: q.answer,
-//           image: q.image ? pb.files.getURL(q, q.image) : undefined,
-//           created: q.created,
-//           updated: q.updated,
-//           isActive: rec.isActive,
-//         };
-//       });
-
-//     return mapped;
-//   } catch (err: any) {
-//     console.error("Error fetching questions:", err.message);
-//     throw err;
-//   }
-// },
-
-
-// ✅ Update an existing question
-
-
-getQuestionsByExam: async (examId: string): Promise<{ active: Question[]; others: Question[] }> => {
+}
+,
+getQuestionsBySubjectClassTopic: async (
+  subject: string,
+  className: string,
+  topic: string
+): Promise<Question[]> => {
   try {
-    // 1️⃣ Get all mappings for this exam
-    const mappings = await pb.collection("exam_questions").getFullList({
-      filter: `examId="${examId}"`,
-      expand: "questionId",
+    const records = await pb.collection("questions").getFullList({
+      filter: `subject="${subject}" && classs="${className}" && topic="${topic}"`,
+      sort: "-created",
     });
 
-    const activeIds = mappings.filter(m => m.isActive).map(m => m.questionId);
+    const questions: Question[] = records.map((q: any) => ({
+      id: q.id,
+      examId: q.examId,
+      type: q.type,
+      questionText: q.questionText,
+      optionA: q.optionA,
+      optionB: q.optionB,
+      optionC: q.optionC,
+      optionD: q.optionD,
+      subject: q.subject,
+      class: q.class,
+      topic: q.topic,
+      answer: q.answer,
+      image: q.image ? pb.files.getURL(q, q.image) : undefined,
+      created: q.created,
+      updated: q.updated,
+      isActive: q.isActive,
+    }));
 
-    // 2️⃣ Active questions
-    const active: Question[] = mappings
-      .filter((rec: any) => rec.expand?.questionId && rec.isActive)
-      .map((rec: any) => {
-        const q = rec.expand.questionId;
-        return {
-          id: q.id,
-          examId: rec.examId,
-          type: q.type,
-          questionText: q.questionText,
-          optionA: q.optionA,
-          optionB: q.optionB,
-          optionC: q.optionC,
-          optionD: q.optionD,
-          answer: q.answer,
-          image: q.image ? pb.files.getURL(q, q.image) : undefined,
-          created: q.created,
-          updated: q.updated,
-          isActive: rec.isActive,
-        };
-      });
-
-    // 3️⃣ Fetch ALL questions from main "questions" collection
-    const allQuestions = await pb.collection("questions").getFullList();
-
-    // 4️⃣ Filter out ones already active
-    const others: Question[] = allQuestions
-      .filter((q: any) => !activeIds.includes(q.id))
-      .map((q: any) => ({
-        id: q.id,
-        examId, // not mapped yet
-        type: q.type,
-        questionText: q.questionText,
-        optionA: q.optionA,
-        optionB: q.optionB,
-        optionC: q.optionC,
-        optionD: q.optionD,
-        answer: q.answer,
-        image: q.image ? pb.files.getURL(q, q.image) : undefined,
-        created: q.created,
-        updated: q.updated,
-        isActive: false,
-      }));
-
-    return { active, others };
+    return questions;
   } catch (err: any) {
     console.error("Error fetching questions:", err.message);
     throw err;
   }
 },
 
+getAllQuestionsByExam: async (): Promise<{ allQuestions: Question[] }> => {
+  try {
+    const records = await pb.collection("questions").getFullList<Question>();
+
+    const allQuestions: Question[] = records.map((q: any) => ({
+      id: q.id,
+      examId: q.examId,   // make sure you actually have this field in the "questions" collection
+      type: q.type,
+      questionText: q.questionText,
+      optionA: q.optionA,
+      optionB: q.optionB,
+      optionC: q.optionC,
+      optionD: q.optionD,
+      subject: q.subject,
+      answer: q.answer,
+      image: q.image ? pb.files.getURL(q, q.image) : undefined,
+      created: q.created,
+      updated: q.updated,
+      isActive: q.isActive,
+    }));
+
+    console.log(allQuestions);
+    return { allQuestions };
+  } catch (err: any) {
+    console.error("Error fetching questions:", err.message);
+    throw err;
+  }
+},
 
 
 
@@ -305,8 +365,9 @@ updateQuestion: async (id, data) => {
       optionB: updated.optionB,
       optionC: updated.optionC,
       optionD: updated.optionD,
+      subject:updated.subject,
       answer: updated.answer,
-      image: updated.image ? pb.files.getUrl(updated, updated.image) : undefined,
+      image: updated.image ? pb.files.getURL(updated, updated.image) : undefined,
       created: updated.created,
       updated: updated.updated,
     };
@@ -352,6 +413,68 @@ deactivateQuestion: async (examId: string, questionId: string) => {
     }));
   } catch (err: any) {
     set({ error: err.message, isLoading: false });
+    throw err;
+  }
+},
+getQuestionsByExam: async (examId: string): Promise<{ active: Question[]; others: Question[] }> => {
+  try {
+    // 1️⃣ Get all mappings for this exam
+    const mappings = await pb.collection("exam_questions").getFullList({
+      filter: `examId="${examId}"`,
+      expand: "questionId",
+    });
+
+    const activeIds = mappings.filter(m => m.isActive).map(m => m.questionId);
+
+    // 2️⃣ Active questions
+    const active: Question[] = mappings
+      .filter((rec: any) => rec.expand?.questionId && rec.isActive)
+      .map((rec: any) => {
+        const q = rec.expand.questionId;
+        return {
+          id: q.id,
+          examId: rec.examId,
+          type: q.type,
+          questionText: q.questionText,
+          optionA: q.optionA,
+          optionB: q.optionB,
+          optionC: q.optionC,
+          subject:q.subject,
+          optionD: q.optionD,
+          answer: q.answer,
+          image: q.image ? pb.files.getURL(q, q.image) : undefined,
+          created: q.created,
+          updated: q.updated,
+          isActive: rec.isActive,
+        };
+      });
+
+    // 3️⃣ Fetch ALL questions from main "questions" collection
+    const allQuestions = await pb.collection("questions").getFullList();
+
+    // 4️⃣ Filter out ones already active
+    const others: Question[] = allQuestions
+      .filter((q: any) => !activeIds.includes(q.id))
+      .map((q: any) => ({
+        id: q.id,
+        examId, // not mapped yet
+        type: q.type,
+        questionText: q.questionText,
+        optionA: q.optionA,
+        optionB: q.optionB,
+        optionC: q.optionC,
+        optionD: q.optionD,
+          subject:q.subject,
+        answer: q.answer,
+        image: q.image ? pb.files.getURL(q, q.image) : undefined,
+        created: q.created,
+        updated: q.updated,
+        isActive: false,
+      }));
+
+    return { active, others };
+  } catch (err: any) {
+    console.error("Error fetching questions:", err.message);
     throw err;
   }
 },

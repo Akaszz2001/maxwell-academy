@@ -244,7 +244,7 @@ export default function FacultyExams() {
     if (user) {
       fetchExamsByUser(user.id);
     }
-  }, [user, fetchExamsByUser]);
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -320,7 +320,7 @@ export default function FacultyExams() {
                 </Button>
 
                 {/* Activate / Deactivate */}
-                <Button
+                {/* <Button
                   size="icon"
                   onClick={() => deactivateExam(exam.id)}
                   disabled={exam.isActive === false}
@@ -332,7 +332,7 @@ export default function FacultyExams() {
                     }`}
                 >
                   {exam.isActive ? <PowerOff size={18} /> : <Power size={18} />}
-                </Button>
+                </Button> */}
               </CardFooter>
             </Card>
           ))}

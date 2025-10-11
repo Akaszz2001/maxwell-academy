@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore, type FormData } from "../../store/authStore";
 import Person from "../../assets/person.png";
+import { toast } from "react-toastify";
 export default function StudentSignup() {
   const navigate = useNavigate();
   const { user, isAuthenticated, signUp } = useAuthStore();
@@ -11,17 +12,18 @@ export default function StudentSignup() {
     email: "",
     phone: "",
     password: "",
+    
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.role === "student") navigate("/student");
-      else if (user.role === "faculty") navigate("/faculty");
-      else if (user.role === "admin") navigate("/admin");
-    }
-  }, [isAuthenticated, user]);
+  // useEffect(() => {
+  //   if (isAuthenticated && user) {
+  //     if (user.role === "student") navigate("/student");
+  //     else if (user.role === "faculty") navigate("/faculty");
+  //     else if (user.role === "admin") navigate("/admin");
+  //   }
+  // }, [isAuthenticated, user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -42,8 +44,9 @@ export default function StudentSignup() {
         ...formData,
         phone: Number(formData.phone),
       });
-      setSuccess("Signup successful! Redirecting to login...");
-      setTimeout(() => navigate("/login"), 2000);
+      toast.success("Successfully created student account")
+     setTimeout(() => navigate("/admin/dashboard/showCredential", { state:{ ...formData,role: "student"} }), 1000);
+
     } catch (err: any) {
       setError(err?.message || "Signup failed.");
     }
@@ -55,7 +58,7 @@ export default function StudentSignup() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
           <h2 className="text-3xl font-bold text-gray-800 text-center mb-6">
-            Student Signup
+            Create Student
           </h2>
 
           {error && (

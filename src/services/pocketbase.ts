@@ -1,10 +1,11 @@
 import PocketBase from "pocketbase";
 
 // Change this to your PocketBase server URL
-const pb = new PocketBase("https://julie-kodak-cute-oil.trycloudflare.com");
+const pb = new PocketBase("http://127.0.0.1:8090");
 
 // Persist auth state across page reloads
 pb.authStore.loadFromCookie(document.cookie);
+pb.autoCancellation(false);
 
 pb.authStore.onChange(() => {
   document.cookie = pb.authStore.exportToCookie({ httpOnly: false });

@@ -104,6 +104,7 @@ interface ExamAttempt {
   score: number;
   status: string;
   expand?: { examId: any; studentId: any };
+    totalMark: number;
 }
 
 interface ExamAnswer {
@@ -147,20 +148,60 @@ export const useExamResultStore = create<ExamResultState>((set, get) => ({
   error: null,
 
   /** 🔹 Student attempts (already present) */
-  fetchStudentAttempts: async (studentId) => {
-    try {
-      set({ isLoading: true, error: null });
-      const result = await pb.collection("exam_attempts").getFullList({
-        filter: `studentId="${studentId}" && status~"completed"`,
-        expand: "examId",
-        sort: "-endedAt",
-      });
-      set({ attempts: result as unknown as ExamAttempt[], isLoading: false });
-    } catch (err: any) {
-      set({ error: err.message, isLoading: false });
-    }
-  },
+  // fetchStudentAttempts: async (studentId) => {
+  //   try {
+  //     set({ isLoading: true, error: null });
+  //     const result = await pb.collection("exam_attempts").getFullList({
+  //       filter: `studentId="${studentId}" && status~"completed"`,
+  //       expand: "examId",
+  //       sort: "-endedAt",
+  //     });
+ 
+  //     set({ attempts: result as unknown as ExamAttempt[], isLoading: false });
+  //   } catch (err: any) {
+  //     set({ error: err.message, isLoading: false });
+  //   }
+  // },
+fetchStudentAttempts: async (studentId) => {
+  try {
+    set({ isLoading: true, error: null });
 
+    // get all completed attempts with exam details expanded
+    const result = await pb.collection("exam_attempts").getFullList({
+      filter: `studentId="${studentId}" && status~"completed"`,
+      expand: "examId",
+      sort: "-endedAt",
+    });
+
+    // enrich each attempt with totalMark
+    const enrichedAttempts = await Promise.all(
+      result.map(async (attempt: any) => {
+        const exam = attempt.expand?.examId;
+        if (!exam) return attempt;
+
+        const examMark = Number(exam.mark) || 0;
+
+        // count active questions for this exam
+        const activeQuestions = await pb.collection("exam_questions").getFullList({
+          filter: `examId="${exam.id}" && isActive=true`,
+        });
+
+        const totalMark = examMark * activeQuestions.length;
+
+        return {
+          ...attempt,
+          totalMark,
+        } as ExamAttempt;
+      })
+    );
+
+    set({ attempts: enrichedAttempts, isLoading: false });
+  } catch (err: any) {
+    console.log(err);
+    
+    set({ error: err.message, isLoading: false });
+  }
+},
   /** 🔹 Student answers (already present) */
   fetchExamAnswers: async (examId, studentId) => {
     console.log('hi');
@@ -171,6 +212,8 @@ export const useExamResultStore = create<ExamResultState>((set, get) => ({
         filter: `examId="${examId}" && studentId="${studentId}"`,
         expand: "questionId",
       });
+      console.log(result);
+      
       set({ answers: result as unknown as ExamAnswer[], isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });

@@ -575,32 +575,52 @@
 //   );
 // }
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuestionStore } from "../../store/questionStore";
 import { ArrowLeft, FileText, ImageIcon, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/authStore";
 
 export default function AddQuestions() {
   const { examId } = useParams<{ examId: string }>();
   const { addBulkQuestions, isLoading } = useQuestionStore();
   const navigate = useNavigate();
-
+  const {user}=useAuthStore()
+const location = useLocation()
+const {subject,topic,classs}=location.state || {}
   const [activeTab, setActiveTab] = useState<"image" | "csv" | "xlsx" | null>(
     null
   );
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+  const [subjects, setSubjects] = useState<{ [key: string]: string }>({});
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvPreview, setCsvPreview] = useState<string[][]>([]);
   const [xlsxFile, setXlsxFile] = useState<File | null>(null);
   const [xlsxPreview, setXlsxPreview] = useState<any[]>([]);
 
+
+  const [sharedSubject, setSharedSubject] = useState("");
+  const [sharedTopic, setSharedTopic] = useState("");
+  const [sharedClass, setSharedClass] = useState("");
   const makeUniqueFile = (file: File) => {
     const uniqueName = `${Date.now()}-${Math.random()
       .toString(36)
       .slice(2)}-${file.name}`;
     return new File([file], uniqueName, { type: file.type });
   };
+
+useEffect(() => {
+  if (subject && topic&& classs) {
+  
+    setSharedSubject(subject);
+    setSharedTopic(topic);
+    setSharedClass(classs)
+  }
+}, [subject, topic,classs]);
+
+
 
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
@@ -627,17 +647,70 @@ export default function AddQuestions() {
     setImageFiles((prev) => [...prev, ...files]);
   };
 
+  // const handleSaveImages = async () => {
+  //   if (!examId) return;
+  //   const newQuestions = imageFiles.map((file) => ({
+  //     type: "image",
+  //     imageFile: file,
+  //     answer: answers[file.name]?.toLowerCase(),
+  //     subject:subjects[file.name]?.toLowerCase()
+  //   }));
+  //   await addBulkQuestions(examId, newQuestions);
+  //   setImageFiles([]);
+  //   setAnswers({});
+  // };
+
+
   const handleSaveImages = async () => {
-    if (!examId) return;
-    const newQuestions = imageFiles.map((file) => ({
-      type: "image",
-      imageFile: file,
-      answer: answers[file.name]?.toLowerCase(),
-    }));
-    await addBulkQuestions(examId, newQuestions);
-    setImageFiles([]);
-    setAnswers({});
+    try {
+      // if (user?.role !== "faculty") {
+      //   toast.error("You are not authorized to perform this action.");
+      //   return;
+      // }
+  
+      if (imageFiles.length === 0) {
+        toast.error("Please upload at least one image before saving.");
+        return;
+      }
+  
+      if (!sharedSubject || !sharedTopic || !sharedClass) {
+        toast.error("Please provide Subject, Topic, and Class.");
+        return;
+      }
+  
+      // Validate answers
+      const missingAnswers = imageFiles.filter((file) => !answers[file.name]?.trim());
+      if (missingAnswers.length > 0) {
+        toast.error("Please provide answers for all uploaded images.");
+        return;
+      }
+  
+      const newQuestions = imageFiles.map((file) => ({
+        type: "image",
+        imageFile: file,
+        answer: answers[file.name].toLowerCase(),
+        subject: sharedSubject.toLowerCase(),
+        topic: sharedTopic.toLowerCase(),
+        classs: sharedClass.toLowerCase(),
+      }));
+  
+      await addBulkQuestions(examId, newQuestions);
+  
+      // Reset state after success
+      setImageFiles([]);
+      setAnswers({});
+      setSharedSubject("");
+      setSharedTopic("");
+      setSharedClass("");
+      toast.success("Image questions saved successfully!");
+    } catch (error) {
+      console.error("Error saving image questions:", error?.response?.data?.message);
+      alert("Something went wrong while saving. Please try again.");
+    }
   };
+
+
+
 
   const handleCsvChange = async (file: File) => {
     setCsvFile(file);
@@ -647,11 +720,13 @@ export default function AddQuestions() {
   };
 
   const handleSaveCSV = async () => {
+    console.log("her");
+    
     if (!examId || !csvFile) return;
     const newQuestions = csvPreview
       .slice(1)
       .map((row) => {
-        const [q, a, b, c, d, ans] = row;
+        const [q, a, b, c, d, ans,subject,topic,classs] = row;
         return {
           type: "text",
           questionText: q,
@@ -659,13 +734,24 @@ export default function AddQuestions() {
           optionB: b,
           optionC: c,
           optionD: d,
+          subject:subject?.trim().toLowerCase(),
           answer: ans?.trim().toLowerCase(),
+          topic: topic?.trim().toLowerCase(),
+          classs: classs?.trim().toLowerCase()
         };
       })
       .filter((q) => q.questionText);
-    await addBulkQuestions(examId, newQuestions);
+      console.log("upto");
+      
+ try{  
+   await addBulkQuestions(examId, newQuestions);
     setCsvFile(null);
     setCsvPreview([]);
+    toast.success("Questions addedd sucessfully")
+  }catch(err){
+      console.log(err);
+      
+    }
   };
 
   const handleXlsxChange = async (file: File) => {
@@ -687,11 +773,21 @@ export default function AddQuestions() {
       optionB: row["optionB"],
       optionC: row["optionC"],
       optionD: row["optionD"],
+      subject:row.subject?.toString().toLowerCase(),
       answer: row.answer?.toString().toLowerCase(),
+      topic: row.topic?.toString().toLowerCase(),
+      classs: row.classs?.toString().toLowerCase(),
     }));
-    await addBulkQuestions(examId, newQuestions);
+    try{
+ await addBulkQuestions(examId, newQuestions);
     setXlsxFile(null);
     setXlsxPreview([]);
+    toast.success("Questions addedd successfully")
+    }catch(err){
+console.log(err);
+
+    }
+   
   };
 
   return (
@@ -768,7 +864,31 @@ export default function AddQuestions() {
               }}
             />
           </div>
-
+      {activeTab === "image" && imageFiles.length > 0 && (
+  <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <input
+      type="text"
+      placeholder="Subject"
+      className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+      value={sharedSubject}
+      onChange={(e) => setSharedSubject(e.target.value)}
+    />
+    <input
+      type="text"
+      placeholder="Topic"
+      className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+      value={sharedTopic}
+      onChange={(e) => setSharedTopic(e.target.value)}
+    />
+    <input
+      type="text"
+      placeholder="Class"
+      className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+      value={sharedClass}
+      onChange={(e) => setSharedClass(e.target.value)}
+    />
+  </div>
+)}
           {imageFiles.length > 0 && (
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {imageFiles.map((file) => (
@@ -794,6 +914,18 @@ export default function AddQuestions() {
                       }))
                     }
                   />
+                  {/* <input
+                    type="text"
+                    placeholder="Subject"
+                    className="border px-2 py-1 rounded w-full"
+                    value={subjects[file.name] || ""}
+                    onChange={(e) =>
+                      setSubjects((prev) => ({
+                        ...prev,
+                        [file.name]: e.target.value,
+                      }))
+                    }
+                  /> */}
                 </div>
               ))}
             </div>

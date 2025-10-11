@@ -1,18 +1,14 @@
-// src/components/RequireAuth.tsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 
 interface RequireAuthProps {
   children: JSX.Element;
-  role?: "student" | "faculty" | "admin"; // optional required role
+  roles?: ("student" | "faculty" | "admin")[]; // allow multiple roles
 }
 
-export default function RequireAuth({ children, role }: RequireAuthProps) {
+export default function RequireAuth({ children, roles }: RequireAuthProps) {
   const { user, isAuthenticated, checkAuth } = useAuthStore();
-
-  console.log("REQUIRE AUTH",user);
-  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,10 +18,10 @@ export default function RequireAuth({ children, role }: RequireAuthProps) {
   useEffect(() => {
     if (isAuthenticated === false) {
       navigate("/login");
-    } else if (role && user?.role !== role) {
+    } else if (roles && !roles.includes(user?.role)) {
       navigate("/unauthorized"); // redirect if role mismatch
     }
-  }, [isAuthenticated, user, role, navigate]);
+  }, [isAuthenticated, user, roles, navigate]);
 
   return children;
 }

@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import pb from "../services/pocketbase";
-
+import { RecordService } from "pocketbase";
 // Form data used in signup forms
 export interface FormData {
   name: string;
@@ -10,9 +10,10 @@ export interface FormData {
   phone: string;
   password: string;
   subject?: string; // 👈 added for faculty
+  avatar?: File | null; // 👈 optional file upload
 }
 
-// Unified User model
+// Unified User model (what comes back from PB)
 export interface User {
   id: string;
   email: string;
@@ -20,6 +21,7 @@ export interface User {
   role: "student" | "faculty" | "admin";
   phone?: number;
   subject?: string; // 👈 added for faculty
+  avatar?: string;  // 👈 stored as filename in PB
   created: string;
   updated: string;
 }
@@ -30,24 +32,31 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+    students?: User[];
+    faculty?:User[]
+    noOfStudents?:User[]
 
   // Actions
   setAuth: (user: User, token: string) => void;
   checkAuth: () => void;
+  fetchStudents:(role:string)=>Promise<void>;
+  fetchFaculties:()=>Promise<void>;
+  fetchAllUsers:()=>Promise<void>;
   signIn: (
     email: string,
     password: string
   ) => Promise<{ user: User; token: string }>;
-  signUp: (
-    data: {
-      name: string;
-      email: string;
-      phone?: number;
-      password: string;
-      subject?: string;
-    },
-    role?: "student" | "faculty" | "admin"
-  ) => Promise<void>;
+signUp: (
+  data: {
+    name: string;
+    email: string;
+    phone?: number;
+    password: string;
+    subject?: string;
+    avatar?: File | null; // 👈 added
+  },
+  role?: "student" | "faculty" | "admin"
+) => Promise<void>;
   signOut: () => void;
   updateUser: (data: Partial<User>) => Promise<void>;
 }
@@ -74,7 +83,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      setAuth: (user, token) => set({ user, token }),
+      setAuth: (user: any, token: any) => set({ user, token }),
 
       checkAuth: () => {
         if (pb.authStore.isValid && pb.authStore.model) {
@@ -92,6 +101,73 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+
+fetchStudents: async (role) => {
+  try {
+    set({ isLoading: true, error: null });
+
+    const studentList = await pb.collection("users").getFullList({
+    filter: `role = '${role}'`,
+      sort: "-created", // optional: newest first
+    });
+const mapped=studentList.map((rec:any)=>{
+  return{
+    id:rec.id,
+    name:rec.name,
+    email:rec.email,
+    phone:rec.phone,
+    role:rec.role,
+    subject:rec.subject,
+    avatar:rec.avatar?pb.files.getURL(rec,rec.avatar):undefined,
+  }
+})
+
+console.log(mapped);
+
+    // const students = studentList.map((record: any) => convertToUser(record));
+
+    set({ students:mapped, isLoading: false });
+  } catch (err) {
+    set({
+      error: (err as Error).message,
+      isLoading: false,
+    });
+  }
+},
+fetchFaculties: async () => {
+  try {
+    set({ isLoading: true, error: null });
+
+    const studentList = await pb.collection("users").getFullList({
+    filter: `role = 'faculty'`,
+      sort: "-created", // optional: newest first
+    });
+const mapped=studentList.map((rec:any)=>{
+  return{
+    id:rec.id,
+    name:rec.name,
+    email:rec.email,
+    phone:rec.phone,
+    role:rec.role,
+    subject:rec.subject,
+    avatar:rec.avatar?pb.files.getURL(rec,rec.avatar):undefined,
+  }
+})
+
+console.log(mapped);
+
+    // const students = studentList.map((record: any) => convertToUser(record));
+
+    set({ faculty:mapped, isLoading: false });
+  } catch (err) {
+    set({
+      error: (err as Error).message,
+      isLoading: false,
+    });
+  }
+}
+
+,
       signIn: async (email, password) => {
         try {
           set({ isLoading: true, error: null });
@@ -119,42 +195,84 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signUp: async ({ name, email, phone, password, subject }, role = "student") => {
-        try {
-          set({ isLoading: true, error: null });
+      // signUp: async ({ name, email, phone, password, subject }, role = "student") => {
+      //   try {
+      //     set({ isLoading: true, error: null });
 
-          await pb.collection("users").create({
-            email,
-            password,
-            passwordConfirm: password, // PB requires confirm
-            phone,
-            name,
-            role,
-            ...(role === "faculty" && { subject }), // only add subject if faculty
-          });
+      //     await pb.collection("users").create({
+      //       email,
+      //       password,
+      //       passwordConfirm: password, // PB requires confirm
+      //       phone,
+      //       name,
+      //       role,
+      //       ...(role === "faculty" && { subject }), // only add subject if faculty
+      //     });
 
-          set({ isLoading: false });
-        } catch (err: any) {
-          console.log("SIGNUP error raw:", err?.data);
+      //     set({ isLoading: false });
+      //   } catch (err: any) {
+      //     console.log("SIGNUP error raw:", err?.data);
 
-          let errorMessage = "Signup failed. Please try again.";
+      //     let errorMessage = "Signup failed. Please try again.";
 
-          if (err?.data?.data) {
-            if (err.data.data.email?.message) {
-              errorMessage = err.data.data.email.message;
-            } else if (err.data.data.phone?.message) {
-              errorMessage = err.data.data.phone.message;
-            } else if (err.data.data.password?.message) {
-              errorMessage = err.data.data.password.message;
-            } else if (err.data.data.subject?.message) {
-              errorMessage = err.data.data.subject.message;
-            }
-          }
+      //     if (err?.data?.data) {
+      //       if (err.data.data.email?.message) {
+      //         errorMessage = err.data.data.email.message;
+      //       } else if (err.data.data.phone?.message) {
+      //         errorMessage = err.data.data.phone.message;
+      //       } else if (err.data.data.password?.message) {
+      //         errorMessage = err.data.data.password.message;
+      //       } else if (err.data.data.subject?.message) {
+      //         errorMessage = err.data.data.subject.message;
+      //       }
+      //     }
 
-          set({ error: errorMessage, isLoading: false });
-          throw new Error(errorMessage);
-        }
-      },
+      //     set({ error: errorMessage, isLoading: false });
+      //     throw new Error(errorMessage);
+      //   }
+      // },
+
+signUp: async ({ name, email, phone, password, subject, avatar }, role = "student") => {
+  try {
+    set({ isLoading: true, error: null });
+
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("passwordConfirm", password);
+    formData.append("name", name);
+    formData.append("role", role);
+   formData.append("emailVisibility", "true");
+    if (phone) formData.append("phone", phone.toString());
+    if (subject && role === "faculty") formData.append("subject", subject);
+    if (avatar) formData.append("avatar", avatar); // 👈 add file only if provided
+
+    await pb.collection("users").create(formData);
+
+    set({ isLoading: false });
+  } catch (err: any) {
+    console.log("SIGNUP error raw:", err?.data);
+    let errorMessage = "Signup failed. Please try again.";
+
+    if (err?.data?.data) {
+      if (err.data.data.email?.message) {
+        errorMessage = err.data.data.email.message;
+      } else if (err.data.data.phone?.message) {
+        errorMessage = err.data.data.phone.message;
+      } else if (err.data.data.password?.message) {
+        errorMessage = err.data.data.password.message;
+      } else if (err.data.data.subject?.message) {
+        errorMessage = err.data.data.subject.message;
+      } else if (err.data.data.avatar?.message) {
+        errorMessage = err.data.data.avatar.message;
+      }
+    }
+
+    set({ error: errorMessage, isLoading: false });
+    throw new Error(errorMessage);
+  }
+},
+
 
       signOut: () => {
         pb.authStore.clear();
@@ -186,6 +304,39 @@ export const useAuthStore = create<AuthState>()(
           throw err;
         }
       },
+
+
+fetchAllUsers: async () => {
+  try {
+    set({ isLoading: true, error: null });
+
+    const userList = await pb.collection("users").getFullList({
+      sort: "-created", // newest first
+    });
+
+    const allUsers = userList.map((rec: any) => ({
+      id: rec.id,
+      name: rec.name,
+      email: rec.email,
+      phone: rec.phone,
+      role: rec.role,
+      subject: rec.subject,
+      avatar: rec.avatar ? pb.files.getURL(rec, rec.avatar) : undefined,
+    }));
+
+    console.log("All users:", allUsers);
+
+    set({ noOfStudents: allUsers, isLoading: false }); // reuse students array for storing all users
+  } catch (err) {
+    set({
+      error: (err as Error).message,
+      isLoading: false,
+    });
+  }
+},
+
+
+
     }),
     {
       name: "auth-storage",

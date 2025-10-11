@@ -1,21 +1,45 @@
 
-import React, { useState } from "react";
-import { Menu, BookOpen, CheckCircle, Clock, Trophy, Calendar, Play, Target, Home, BarChart3, Users, Settings, LogOut, X } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from "react";
+import { Menu, BookOpen, CheckCircle, Clock, Trophy, Calendar, Play, Target, Home, BarChart3, Users, Settings, LogOut, X, MegaphoneIcon, Bell } from "lucide-react";
+
 import { useAuthStore } from "@/store/authStore";
+import { useAnnouncementStore } from "@/store/announcementStore";
 
 // Sidebar Component
 const StudentSidebar = ({ isSidebarOpen, setSidebarOpen, activeRoute, setActiveRoute }) => {
         const {signOut}=useAuthStore()
-
+  const [hasUnread, setHasUnread] = useState(false);
+  const {fetchAnnouncementsForNotfications,announcements}=useAnnouncementStore()
+const {user}=useAuthStore()
   const navigationItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "exams", label: "All Exams", icon: BookOpen },
     { id: "results", label: "Results", icon: BarChart3 },
+    { id: "Notifications", label: "Notifications", icon: Bell },
 
   ];
 
+useEffect(() => {
+  const fetchData = async () => {
+    // Your async logic here
+    await fetchAnnouncementsForNotfications('student');
+  };
+
+  fetchData();
+}, [fetchAnnouncementsForNotfications]);
+
+
+useEffect(() => {
+  // current logged-in user
+  if (!user.id) return;
+
+  const visitedByUser = JSON.parse(localStorage.getItem("visitedAnnouncements") || "{}");
+
+  const userVisited = visitedByUser[user.id] || [];
+
+  const unread = announcements.some((a) => !userVisited.includes(a.id));
+  setHasUnread(unread);
+}, [announcements, user]);
   return (
     <>
       {/* Sidebar - Fixed on mobile, static on desktop */}
@@ -58,7 +82,12 @@ const StudentSidebar = ({ isSidebarOpen, setSidebarOpen, activeRoute, setActiveR
                       : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
                   }`}
                 >
-                  <Icon className="w-5 h-5 mr-3" />
+                          <div className="relative mr-3">
+  <Icon className="w-5 h-5" />
+  {item.id === "Notifications" && hasUnread && (
+    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
+  )}
+</div>
                   {item.label}
                 </button>
               );

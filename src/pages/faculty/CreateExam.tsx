@@ -301,8 +301,10 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useExamStore } from "../../store/examStore";
 import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/authStore";
 
 export default function CreateExam() {
+  const {user}=useAuthStore()
   const navigate = useNavigate();
   const { examId } = useParams<{ examId: string }>();
   const { createExam, updateExam, getExamById, isLoading, error } =
@@ -311,7 +313,10 @@ export default function CreateExam() {
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
+    mark:0,
+    negMark:0,
     startTime: "",
+    classs:"",
     duration: 60,
   });
 
@@ -323,6 +328,9 @@ export default function CreateExam() {
           setFormData({
             name: exam.name || "",
             subject: exam.subject || "",
+            mark:exam.mark ||1,
+            negMark:exam.negMark ||-1,
+             classs:exam.classs||"",
             startTime: exam.startTime
               ? new Date(exam.startTime).toISOString().slice(0, 16)
               : "",
@@ -337,6 +345,14 @@ export default function CreateExam() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
+
+  // if (name === "mark") {
+  //   console.log(typeof(e.target.value));
+    
+  //   const num = Number(value);
+  //   if (num < 1) return; // 👈 blocks negatives and 0
+  // }
     setFormData((prev) => ({
       ...prev,
       [name]: name === "duration" ? Number(value) : value,
@@ -361,19 +377,28 @@ export default function CreateExam() {
         toast.error("Failed to update");
       }
     } else {
+      
       await createExam(payload, navigate);
     }
   };
 
   const handleCancel = () => {
+    if(user?.role==="admin"){
+    navigate("/admin/dashboard");
+  }else{
     navigate("/faculty/dashboard");
+  }
   };
 
   const handleFinish = async () => {
     if (examId) {
       // await updateExam(examId, formData);
       toast.success("Exam changes saved ✅");
-      navigate("/faculty/dashboard");
+      if(user?.role==="admin"){
+    navigate("/admin/dashboard");
+  }else{
+    navigate("/faculty/dashboard");
+  }
     }
   };
 
@@ -410,6 +435,130 @@ export default function CreateExam() {
             className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
             required
           />
+          <input
+            type="text"
+            name="classs"
+            placeholder="Class"
+            value={formData.classs}
+            onChange={handleChange}
+            className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+            required
+          />
+
+          
+{/* <input
+  type="text"
+  name="mark"
+  placeholder="Mark"
+  value={formData.mark}
+  onChange={(e) => {
+    const raw = e.target.value;
+
+    // Allow empty while typing
+    if (raw === "") {
+      handleChange({ target: { name: "mark", value: "" } } as any);
+      return;
+    }
+
+    // ✅ Regex:
+    // ^(0|[1-9]\d*)(\.\d+)?$
+    // - 0 → just zero
+    // - [1-9]\d* → numbers without leading zero
+    // - (\.\d+)? → optional decimal part
+    const regex = /^(0|[1-9]\d*)(\\d+)?$/;
+
+    if (regex.test(raw)) {
+      handleChange({ target: { name: "mark", value: raw } } as any);
+    }
+  }}
+  className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+/> */}
+<input
+  type="text"
+  name="mark"
+  placeholder="Mark"
+  value={formData.mark}
+  onChange={(e) => {
+    const raw = e.target.value;
+
+    // Allow empty while typing
+    if (raw === "") {
+      handleChange({ target: { name: "mark", value: "" } } as any);
+      return;
+    }
+
+    // ✅ Regex for numbers with optional decimal, no leading zero
+    // const regex = /^(0|[1-9]\d*)(\.\d+)?$/;
+    const regex = /^(0|[1-9]\d*)(\.\d*)?$/;
+
+    if (regex.test(raw)) {
+      handleChange({ target: { name: "mark", value: raw } } as any);
+    }
+  }}
+  className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+/>
+
+
+
+
+
+       <input
+  type="text"
+  name="negativeMark"
+  placeholder="Negative Mark"
+  value={formData.negMark}
+  onChange={(e) => {
+    const  raw = e.target.value;
+
+    // ✅ Allow empty for typing
+    if (raw === "") {
+      handleChange({ target: { name: "negMark", value: "" } } as any);
+      return;
+    }
+
+    // ✅ Regex explanation:
+    // - ^[1-9]\d*(\.\d+)?$ → integers or floats without leading zero (≥1)
+    // - ^0+(\.\d+)?$ → numbers like 0.5, 00.12 (leading zeros allowed only if decimal part exists)
+      const regex = /^(0|[1-9]\d*)(\.\d*)?$/;
+
+    if (regex.test(raw)) {
+      handleChange({ target: { name: "negMark", value: raw } } as any);
+    }
+  }}
+  className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+/>
+
+
+          {/* <input
+            type="number"
+            name="negativeMark"
+            placeholder="Negative Mark"
+            value={formData.negMark}
+   onChange={(e) => {
+    const raw = e.target.value;
+
+    // Allow empty string while editing
+    if (raw === "") {
+      handleChange({ target: { name: "negMark", value: "" } } as any);
+      return;
+    }
+
+    const value = Number(raw);
+
+    // Only allow 0 or negative
+    if (!isNaN(value) && value <= 0) {
+      handleChange({ target: { name: "negMark", value } } as any);
+    }
+  }}
+  onKeyDown={(e) => {
+    // Prevent invalid characters: e, E, +, .
+    if (["e", "E", "+", "."].includes(e.key)) {
+      e.preventDefault();
+    }
+  }}
+            className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+            required
+          /> */}
 
           <input
             type="datetime-local"
@@ -446,7 +595,7 @@ export default function CreateExam() {
                 <button
                   type="button"
                   onClick={() =>
-                    navigate(`/faculty/dashboard/exams/${examId}/questions`)
+                   navigate(`/faculty/dashboard/exams/${examId}/questions`)
                   }
                   className="flex-1 px-4 py-2 rounded-full bg-indigo-500 text-white font-medium shadow hover:bg-indigo-600 hover:scale-105 transition"
                 >

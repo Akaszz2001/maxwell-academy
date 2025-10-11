@@ -7,12 +7,12 @@ import { toast } from "react-toastify";
 
 
 export default function ExamList() {
-  const { exams, fetchAllExams, isLoading, error } = useExamStore();
+  const { exams, fetchAllExamsByActive, isLoading, error } = useExamStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAllExams();
-  }, [fetchAllExams]);
+    fetchAllExamsByActive();
+  }, [fetchAllExamsByActive]);
 
   // const handleStart = async (examId: string) => {
   //   const userId = pb.authStore.model?.id;

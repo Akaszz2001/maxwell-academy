@@ -1,6 +1,6 @@
-questionText,optionA,optionB,optionC,optionD,answer
-What is 2 + 2?,2,3,4,5,c
-The capital of France is?,Berlin,Paris,Rome,Madrid,b
-Which language is primarily used for Android app development?,Python,Java,C++,Ruby,b
-Which planet is known as the Red Planet?,Earth,Mars,Venus,Jupiter,b
-What is the square root of 81?,7,8,9,10,c
+questionText,optionA,optionB,optionC,optionD,answer,subject,topic,classs
+What is 2 + 2?,2,3,4,5,c,maths,integration,6th
+The capital of France is?,Berlin,Paris,Rome,Madrid,b,maths,algebra,7th
+Which language is primarily used for Android app development?,Python,Java,C++,Ruby,b,english,Grammar,5th
+Which planet is known as the Red Planet?,Earth,Mars,Venus,Jupiter,b,biology,Plantcell,6th,
+What is the square root of 81?,7,8,9,10,c,biology,Animalcell,6th

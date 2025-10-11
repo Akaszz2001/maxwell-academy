@@ -473,6 +473,7 @@ import { useExamSessionStore } from "../../store/examSessionStore";
 import pb from "../../services/pocketbase";
 import { useNavigationBlocker } from "../../services/useNavigationBlocker";
 import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/authStore";
 
 // ---------------------- TYPES ----------------------
 type Question = {
@@ -510,14 +511,30 @@ type Exam = {
 export default function ExamWindow() {
   const { examId } = useParams<{ examId: string }>();
   const { answers, saveAnswer, finishExam, setExam } = useExamSessionStore();
-
+const {user}=useAuthStore()
   const [exam, setExamData] = useState<Exam | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState<number>(0);
+  const [visited, setVisited] = useState<Set<number>>(new Set());
+
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [attempt, setAttempt] = useState<ExamAttempt | null>(null);
   const userId = pb.authStore.model?.id;
   const navigate = useNavigate();
+const [showConfirm, setShowConfirm] = useState(false);
+const [showSuccess,setShowSuccess]=useState(false)
+
+  const handleSetCurrent = (idx: number) => {
+  setVisited((prev) => new Set([...prev, idx]));
+  setCurrent(idx);
+};
+
+
+// Track visited questions automatically
+useEffect(() => {
+  setVisited((prev) => new Set(prev).add(current));
+}, [current]);
+
 
   // --- Keep your existing logic (unchanged) ---
   useEffect(() => {
@@ -646,15 +663,52 @@ export default function ExamWindow() {
   const q = questions[current];
   const selected = answers[q?.id] || "";
 
-  const handleFinish = () => {
-    if (!exam) return;
-    finishExam(exam.id).then(() => {
-      localStorage.removeItem(`exam_${exam.id}_answers`);
-      localStorage.removeItem(`exam_${exam.id}_time`);
-      alert("Exam submitted successfully!");
-      navigate("/student/dashboard/");
-    });
-  };
+// const handleFinish = () => {
+//   if (!exam) return;
+
+//   const confirmSubmit = window.confirm(
+//     "Are you sure you want to submit the exam? Your answers will be saved."
+//   );
+
+//   if (!confirmSubmit) {
+//     // User clicked "No" → cancel submission
+//     return;
+//   }
+
+//   // User clicked "Yes" → submit exam
+//   finishExam(exam.id).then(() => {
+//     localStorage.removeItem(`exam_${exam.id}_answers`);
+//     localStorage.removeItem(`exam_${exam.id}_time`);
+//     alert("Exam submitted successfully!");
+//     navigate("/student/dashboard/");
+//   });
+// };
+const handleFinish = () => {
+  if (!exam) return;
+  setShowConfirm(true); // show modal instead of using window.confirm
+};
+
+
+
+const confirmSubmit = () => {
+  setShowConfirm(false); // hide modal
+  finishExam(exam.id).then(() => {
+    localStorage.removeItem(`exam_${exam.id}_answers`);
+    localStorage.removeItem(`exam_${exam.id}_time`);
+   toast.success("Exam submitted successfully")
+   setShowSuccess(true)
+   setTimeout(() => {
+     navigate("/student/dashboard/");
+   }, 3000);
+   
+  });
+};
+
+const cancelSubmit = () => {
+  setShowConfirm(false); // hide modal, keep exam session
+};
+
+
 
   const formatTime = (sec: number) => {
     const m = Math.floor(sec / 60);
@@ -671,21 +725,53 @@ export default function ExamWindow() {
         <h2 className="text-lg font-semibold mb-4 text-center md:text-left text-gray-700">
           Questions
         </h2>
+
+          <div className="flex gap-2 mb-4 flex-wrap justify-center md:justify-start">
+    <div className="flex items-center gap-1">
+      <span className="w-4 h-4 bg-blue-600 rounded"></span> Current
+    </div>
+    <div className="flex items-center gap-1">
+      <span className="w-4 h-4 bg-green-500 rounded"></span> Answered
+    </div>
+    <div className="flex items-center gap-1">
+      <span className="w-4 h-4 bg-red-600 rounded"></span> Not Answered     </div>
+    <div className="flex items-center gap-1">
+      <span className="w-4 h-4 bg-gray-200 rounded border"></span> Not Visited
+    </div>
+  </div>
         <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-4 gap-2">
           {questions.map((q, idx) => (
-            <button
-              key={q.id}
-              onClick={() => setCurrent(idx)}
-              className={`p-2 rounded text-sm font-medium transition shadow-sm ${
-                idx === current
-                  ? "bg-blue-600 text-white"
-                  : answers[q.id]
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              {idx + 1}
-            </button>
+            // <button
+            //   key={q.id}
+            //   onClick={() => setCurrent(idx)}
+            //   className={`p-2 rounded text-sm font-medium transition shadow-sm ${
+            //     idx === current
+            //       ? "bg-blue-600 text-white"
+            //       : answers[q.id]
+            //       ? "bg-green-500 text-white"
+            //       : "bg-gray-200 hover:bg-gray-300"
+            //   }`}
+            // >
+            //   {idx + 1}
+            // </button>
+
+      <button
+  key={q.id}
+  onClick={() => handleSetCurrent(idx)}
+  className={`p-2 rounded text-sm font-medium transition shadow-sm
+    ${idx === current
+      ? "bg-blue-600 text-white" // 🔹 current
+      : answers[q.id]
+      ? "bg-green-500 text-white" // ✅ answered
+      : visited.has(idx)
+      ? "bg-red-600 text-white" // 🟤 visited but not answered
+      : "bg-gray-200 hover:bg-gray-300" // ⚪ untouched
+    }`}
+>
+  {idx + 1}
+</button>
+
+
           ))}
         </div>
       </div>
@@ -744,28 +830,95 @@ export default function ExamWindow() {
 
         {/* Navigation Buttons */}
         <div className="mt-6 flex flex-col sm:flex-row justify-between gap-3">
-          <button
-            disabled={current === 0}
-            onClick={() => setCurrent((prev) => prev - 1)}
-            className="px-5 py-2 bg-gray-300 text-gray-800 rounded shadow hover:bg-gray-400 disabled:opacity-50 transition"
-          >
-            Previous
-          </button>
-          <button
-            disabled={current === questions.length - 1}
-            onClick={() => setCurrent((prev) => prev + 1)}
-            className="px-5 py-2 bg-gray-300 text-gray-800 rounded shadow hover:bg-gray-400 disabled:opacity-50 transition"
-          >
-            Next
-          </button>
+        <button
+  disabled={current === 0}
+  onClick={() => handleSetCurrent(current - 1)}
+  className="px-5 py-2 bg-yellow-400 text-white rounded shadow hover:bg-yellow-500 disabled:opacity-50 transition"
+>
+  Previous
+</button>
+       <button
+  disabled={current === questions.length - 1}
+  onClick={() => handleSetCurrent(current + 1)}
+  className="px-5 py-2 bg-blue-400 text-white rounded shadow hover:bg-blue-500 disabled:opacity-50 transition"
+>
+  Next
+</button>
           <button
             onClick={handleFinish}
-            className="px-6 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600 transition"
+            className="px-6 py-2 bg-green-500 text-white rounded shadow hover:bg-green-400 transition"
           >
             Finish Exam
           </button>
         </div>
       </div>
+
+
+      {showConfirm && (
+<div className="fixed inset-0 flex items-center justify-center  bg-opacity-30 backdrop-blur-sm z-50">
+  <div className="bg-gray-200 rounded-lg p-6 shadow-lg w-80 text-center">
+    <h2 className="text-lg font-semibold mb-4">Submit Exam</h2>
+    <p className="mb-6">Are you sure you want to submit the exam? Your answers will be saved.</p>
+    <div className="flex justify-between gap-4">
+      <button
+      style={{color:"white"}}
+        onClick={cancelSubmit}
+        className="px-4 py-2 bg-red-500 rounded hover:bg-red-600 transition"
+      >
+        No
+      </button>
+      <button
+        onClick={confirmSubmit}
+        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+      >
+        Yes
+      </button>
+    </div>
+  </div>
+</div>
+
+)}
+
+{showSuccess && (
+  <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-green-100 to-green-50">
+    <div className="text-center p-10 max-w-2xl mx-auto">
+      {/* Big check icon */}
+      <div className="flex justify-center mb-6">
+        <div className="w-24 h-24 flex items-center justify-center rounded-full bg-green-500 text-white shadow-lg">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-12 h-12"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Title */}
+      <h1 className="text-3xl font-bold text-gray-800 mb-4">
+        Dear {user?.name || "Student"},
+      </h1>
+      <p className="text-lg text-gray-700 mb-2">
+        You have successfully completed <span className="font-semibold">{exam?.name}</span>.
+      </p>
+      <p className="text-md text-gray-600 mb-8">
+        Your result will be prepared and available in your dashboard.
+      </p>
+
+      {/* Redirect notice */}
+      <p className="text-sm text-gray-500 italic">
+        Redirecting to dashboard in a few seconds...
+      </p>
+    </div>
+  </div>
+)}
+
+
+
     </div>
   );
 }

@@ -31,11 +31,13 @@ const LandingPage: React.FC = () => {
   <button onClick={()=>navigate('/faculty/dashboard')} className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700 transition">
     Faculty Dashboard
   </button>
-) : (
-  <button className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700 transition">
+) : user?.role==="admin" ? (
+  <button onClick={()=>navigate('/admin/dashboard')} className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700 transition">
  Admin Dashboard
   </button>
-)}
+):(<button onClick={()=>navigate('/login')} className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700 transition">
+ Login
+  </button>)}
 
             <button className="border border-blue-600 text-blue-600 px-6 py-3 rounded-lg text-lg hover:bg-blue-50 transition">
               Learn More

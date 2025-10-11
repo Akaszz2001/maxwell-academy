@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server:{
     allowedHosts:[
-        "learning-phones-compression-pope.trycloudflare.com"
+        "will-opposite-nil-district.trycloudflare.com"
     ]
   }
 })

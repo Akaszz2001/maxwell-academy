@@ -1,112 +1,23 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// // src/store/examStore.ts
-// import { create } from "zustand";
-// import pb from "../services/pocketbase";
-// import { useAuthStore } from "./authStore";
-
-// export interface Exam {
-//   id: string;
-//   name: string;
-//   subject: string;
-//   startTime: string;
-//   duration: number;
-//   createdBy: string;
-//   created: string;
-//   updated: string;
-// }
-
-// interface ExamState {
-//   exams: Exam[];
-//   isLoading: boolean;
-//   error: string | null;
-
-//   createExam: (
-//     exam: Omit<Exam, "id" | "created" | "updated" | "createdBy">,
-//     navigate: (path: string) => void
-//   ) => Promise<void>;
-
-//   fetchExamsByUser: (userId: string) => Promise<void>;
-//   fetchAllExams: () => Promise<void>;   // ✅
-// }
-
-// export const useExamStore = create<ExamState>((set) => ({
-//   exams: [],
-//   isLoading: false,
-//   error: null,
-
-//   // ✅ create exam and auto-redirect
-//   createExam: async (examData, navigate) => {
-//     try {
-//       set({ isLoading: true, error: null });
-
-//       const { user } = useAuthStore.getState();
-//       console.log("EXAM STORE USER CHECKING",user);
-      
-//       if (!user) throw new Error("Not authenticated");
-
-//       const newExam = await pb.collection("exams").create({
-//         ...examData,
-//         createdBy: user.id, // ✅ auto store current faculty ID
-//       });
-//       console.log("EXAM STORE",newExam);
-      
-
-//       set((state) => ({
-//         exams: [...state.exams, newExam as unknown as Exam],
-//         isLoading: false,
-//       }));
-
-//       // redirect to AddQuestions after save
-//       navigate(`/faculty/dashboard/exams/${newExam.id}/questions/add`);
-
-//     } catch (err: any) {
-//       set({ error: err.message, isLoading: false });
-//       throw err;
-//     }
-//   },
-
-//   // ✅ fetch only current faculty exams
-//   fetchExamsByUser: async (userId) => {
-//     try {
-//       set({ isLoading: true, error: null });
-//       const result = await pb.collection("exams").getFullList<Exam>({
-//         filter: `createdBy="${userId}"`,
-//         sort: "-created",
-//       });
-//       set({ exams: result, isLoading: false });
-//     } catch (err: any) {
-//       set({ error: err.message, isLoading: false });
-//     }
-//   },
-//   fetchAllExams: async () => {
-//     try {
-//       set({ isLoading: true, error: null });
-//       const result = await pb.collection("exams").getFullList<Exam>({
-//         sort: "-created",
-//       });
-//       set({ exams: result, isLoading: false });
-//     } catch (err: any) {
-//       set({ error: err.message, isLoading: false });
-//     }
-//   },
-// }));
-
 
 
 // src/store/examStore.ts
 import { create } from "zustand";
 import pb from "../services/pocketbase";
 import { useAuthStore } from "./authStore";
+import { toast } from "react-toastify";
 
 export interface Exam {
   id: string;
   name: string;
   subject: string;
+  mark:number;
+  negMark:number;
   startTime: string;
   duration: number;
   createdBy: string;
   created: string;
   updated: string;
+  classs:string
   isActive?: boolean; // ✅ to support deactivate
 }
 export interface CategorizedExams {
@@ -119,14 +30,16 @@ interface ExamState {
   isLoading: boolean;
   error: string | null;
 
-  createExam: (
-    exam: Omit<Exam, "id" | "created" | "updated" | "createdBy">,
-    navigate: (path: string) => void
-  ) => Promise<void>;
+createExam: (
+  exam: Omit<Exam, "id" | "created" | "updated" | "createdBy">,
+  navigate: (path: string, options?: { replace?: boolean; state?: any }) => void
+) => Promise<void>;
 
   fetchExamsByUser: (userId: string) => Promise<void>;
   fetchAllExams: () => Promise<void>;
+  fetchAllExamsByActive: () => Promise<void>;
 getExamById: (id: string) => Promise<Exam | null>;
+fetchAllExamsForDash: () => Promise<Exam | null>;
 updateExam: (id: string, data: Partial<Exam>) => Promise<{
   success: boolean;
   data?: Exam;
@@ -138,6 +51,7 @@ duplicateExam: (
 ) => Promise<Exam | null>;
 
   deactivateExam: (id: string) => Promise<void>;
+  activateExam: (id: string) => Promise<void>;
   fetchAndCategorizeExams: () => Promise<CategorizedExams>;
 }
 
@@ -165,8 +79,9 @@ export const useExamStore = create<ExamState>((set) => ({
         exams: [...state.exams, newExam as unknown as Exam],
         isLoading: false,
       }));
-
-      navigate(`/faculty/dashboard/exams/${newExam.id}/questions/add`);
+         toast.success("Successfully created exam")
+         toast.info("Please add some questions")
+      navigate(`/faculty/dashboard/exams/${newExam.id}/questions/add`,{state:{subject:newExam.subject,topic:newExam.name,classs:newExam.classs}});
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
       throw err;
@@ -193,6 +108,31 @@ export const useExamStore = create<ExamState>((set) => ({
       set({ isLoading: true, error: null });
       const result = await pb.collection("exams").getFullList<Exam>({
         sort: "-created",
+      });
+      set({ exams: result, isLoading: false });
+    } catch (err: any) {
+      set({ error: err.message, isLoading: false });
+    }
+  },
+  fetchAllExamsForDash: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const result = await pb.collection("exams").getFullList<Exam>({
+        sort: "-created",
+      });
+      set({  isLoading: false });
+      return result
+    } catch (err: any) {
+      set({ error: err.message, isLoading: false });
+      return err
+    }
+  },
+  fetchAllExamsByActive: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const result = await pb.collection("exams").getFullList<Exam>({
+        sort: "-created",
+        filter: "isActive = true",
       });
       set({ exams: result, isLoading: false });
     } catch (err: any) {
@@ -226,6 +166,8 @@ console.log("UPDATED EXAM",updated);
   // ✅ deactivate exam (soft delete)
   deactivateExam: async (id) => {
     try {
+      console.log(id);
+      
       set({ isLoading: true, error: null });
       const updated = await pb.collection("exams").update(id, { isActive: false });
       console.log(updated);
@@ -238,6 +180,29 @@ console.log("UPDATED EXAM",updated);
       }));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
+      console.log(err);
+      
+      set({ error: err.message, isLoading: false });
+    }
+  },
+  activateExam: async (id) => {
+    try {
+      console.log(id);
+      
+      set({ isLoading: true, error: null });
+      const updated = await pb.collection("exams").update(id, { isActive: true });
+      console.log(updated);
+      
+      set((state) => ({
+        exams: state.exams.map((exam) =>
+          exam.id === id ? { ...exam, isActive: true } : exam
+        ),
+        isLoading: false,
+      }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.log(err);
+      
       set({ error: err.message, isLoading: false });
     }
   },
@@ -334,8 +299,8 @@ duplicateExam: async (examId: string, newExamData?: Partial<Exam>) => {
        console.log("Copying question mapping:", m);
       
      await pb.collection("exam_questions").create({
-  examId: [exam.id],
-  questionId: [m.questionId],
+  examId: exam.id,
+  questionId: m.questionId,
   isActive: m.isActive,
 });
     }
@@ -362,6 +327,7 @@ duplicateExam: async (examId: string, newExamData?: Partial<Exam>) => {
       // fetch all exams
       const allExams = await pb.collection("exams").getFullList<Exam>({
         sort: "startTime",
+        filter:"isActive=true"
       });
 
       // fetch all attempts by this user

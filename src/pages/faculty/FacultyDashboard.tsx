@@ -105,7 +105,7 @@
 //     </div>
 //   );
 // }
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useExamStore } from "../../store/examStore";
@@ -116,11 +116,14 @@ export default function FacultyDashboard() {
   const { exams, fetchExamsByUser, isLoading } = useExamStore();
   const { user } = useAuthStore();
 
-  useEffect(() => {
-    if (user) {
-      fetchExamsByUser(user.id);
-    }
-  }, [user, fetchExamsByUser]);
+ const fetchedRef = useRef(false);
+
+useEffect(() => {
+  if (user && !fetchedRef.current) {
+    fetchExamsByUser(user.id);
+    fetchedRef.current = true;
+  }
+}, [user]);
 
   const activeExams = exams.filter((exam) => exam.isActive !== false);
 

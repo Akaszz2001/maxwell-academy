@@ -26,15 +26,20 @@ const Navbar: FC = () => {
           <a href="/" className="hover:text-blue-600">
             Home
           </a>
-          <a href="#features" className="hover:text-blue-600">
-            Features
+          <a href="/gallery" className="hover:text-blue-600">
+            Gallery
           </a>
-          <a href="#about" className="hover:text-blue-600">
+          <a href="/aboutUs" className="hover:text-blue-600">
             About
           </a>
           <a href="#contact" className="hover:text-blue-600">
             Contact
           </a>
+          <a href="/faculties" className="hover:text-blue-600">
+            Faculties
+          </a>
+          <a href="/topperformers" className="hover:text-blue-600">
+Top Performers          </a>
         </nav>
 
         {/* Login Button */}
