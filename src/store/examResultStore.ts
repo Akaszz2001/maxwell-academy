@@ -127,6 +127,7 @@ interface User {
 
 interface ExamResultState {
   attempts: ExamAttempt[];
+  individualExams:ExamAttempt[]
   answers: ExamAnswer[];
   facultyExams: Exam[];
   students: User[];
@@ -137,6 +138,7 @@ interface ExamResultState {
   fetchExamAnswers: (examId: string, studentId: string) => Promise<void>;
   fetchFacultyExams: (facultyId: string) => Promise<void>;
   fetchExamParticipants: (examId: string) => Promise<{ attended: User[]; notAttended: User[] }>;
+  fetchUserAttemptedExams:(userId:string)=>Promise<void>
 }
 
 export const useExamResultStore = create<ExamResultState>((set, get) => ({
@@ -144,6 +146,7 @@ export const useExamResultStore = create<ExamResultState>((set, get) => ({
   answers: [],
   facultyExams: [],
   students: [],
+  individualExams:[],
   isLoading: false,
   error: null,
 
@@ -204,7 +207,7 @@ fetchStudentAttempts: async (studentId) => {
 },
   /** 🔹 Student answers (already present) */
   fetchExamAnswers: async (examId, studentId) => {
-    console.log('hi');
+    console.log('hi',studentId);
     
     try {
       set({ isLoading: true, error: null });
@@ -317,5 +320,46 @@ fetchStudentAttempts: async (studentId) => {
     return { attended: [], notAttended: [] };
   }
 },
+fetchUserAttemptedExams: async (userId: string) => {
+  try {
+    set({ isLoading: true, error: null });
+
+    // ✅ Fetch all exams
+    const exams = await pb.collection("exams").getFullList({
+      sort: "-created",
+    });
+
+    // ✅ Fetch attempts by this user
+    const attempts = await pb.collection("exam_attempts").getFullList({
+      filter: `studentId="${userId}" && status~"completed"`,
+      expand: "examId",
+      sort: "-endedAt",
+    });
+
+    // ✅ Filter the exams that match attempted ones
+    const attemptedExamIds = attempts.map((a: any) => a.examId);
+    const attemptedExams = exams.filter((exam: any) =>
+      attemptedExamIds.includes(exam.id)
+    );
+
+    // ✅ Enrich with attempt info (score, startedAt, endedAt)
+    const detailedAttempts = attemptedExams.map((exam: any) => {
+      const attempt = attempts.find((a: any) => a.examId === exam.id);
+      return {
+        ...exam,
+        score: attempt?.score ?? 0,
+        startedAt: attempt?.startedAt,
+        endedAt: attempt?.endedAt,
+        attemptId: attempt?.id,
+      };
+    });
+
+    set({ individualExams: detailedAttempts as ExamAttempt[], isLoading: false });
+  } catch (err: any) {
+    console.error(err);
+    set({ error: err.message, isLoading: false });
+  }
+},
+
 
 }));

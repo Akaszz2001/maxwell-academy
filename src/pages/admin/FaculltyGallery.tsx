@@ -120,7 +120,9 @@
 //     </div>
 //   );
 // }
+import { Button } from "@/components/ui/button";
 import { useFacultyGalleryStore } from "@/store/facultyGalleryStore";
+import { ArrowLeft, Home } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -196,6 +198,22 @@ export default function FacultyGallery() {
 
   return (
     <div className="max-w-lg mx-auto p-6 bg-white rounded-xl shadow-lg mt-10 sm:p-8">
+       {id&& 
+        <div className="flex justify-between items-center mb-4">
+          <Button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 bg-gray-200 hover:bg-gray-400 text-white"
+          >
+            <ArrowLeft className="w-5 h-5" /> Back
+          </Button>
+          <Button
+           onClick={() => navigate("/admin/dashboard")}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Home className="w-5 h-5" /> Dashboard
+          </Button>
+        </div>
+      }
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
         {isEditMode ? "Update Faculty" : "Add Faculty"}
       </h2>

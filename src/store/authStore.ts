@@ -3,11 +3,13 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import pb from "../services/pocketbase";
 import { RecordService } from "pocketbase";
+import { Verified } from "lucide-react";
 // Form data used in signup forms
 export interface FormData {
   name: string;
   email: string;
   phone: string;
+  verified?:boolean
   password: string;
   subject?: string; // 👈 added for faculty
   avatar?: File | null; // 👈 optional file upload
@@ -18,6 +20,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  verified?:boolean
   role: "student" | "faculty" | "admin";
   phone?: number;
   subject?: string; // 👈 added for faculty
@@ -68,6 +71,7 @@ export const convertToUser = (record: any): User => ({
   email: record.email ?? "",
   name: record.name ?? "",
   role: record.role ?? "student",
+  Verified:record.Verified??"",
   phone: record.phone ?? "",
   subject: record.subject ?? "",
   created: record.created ?? "",
@@ -110,6 +114,8 @@ fetchStudents: async (role) => {
     filter: `role = '${role}'`,
       sort: "-created", // optional: newest first
     });
+    console.log(studentList);
+    
 const mapped=studentList.map((rec:any)=>{
   return{
     id:rec.id,
@@ -118,6 +124,7 @@ const mapped=studentList.map((rec:any)=>{
     phone:rec.phone,
     role:rec.role,
     subject:rec.subject,
+    verified:rec.verified,
     avatar:rec.avatar?pb.files.getURL(rec,rec.avatar):undefined,
   }
 })
@@ -324,7 +331,6 @@ fetchAllUsers: async () => {
       avatar: rec.avatar ? pb.files.getURL(rec, rec.avatar) : undefined,
     }));
 
-    console.log("All users:", allUsers);
 
     set({ noOfStudents: allUsers, isLoading: false }); // reuse students array for storing all users
   } catch (err) {

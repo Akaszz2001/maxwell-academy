@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAnnouncementStore } from "@/store/announcementStore";
 import { useAuthStore } from "@/store/authStore";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 export default function AnnouncementDetail() {
   const { announceID } = useParams();
   const { fetchAnnouncementsById, isLoading } = useAnnouncementStore();
   const [announcement, setAnnouncement] = useState<any>(null);
   const {user}=useAuthStore()
-
+const navigate=useNavigate()
   useEffect(() => {
     // Mark announcements as visited
     const visited = JSON.parse(localStorage.getItem("visitedAnnouncements") || "{}");
@@ -43,12 +45,12 @@ if (!visited[user.id].includes(announceID)) {
       <div className="bg-white rounded-lg shadow-lg p-6 md:p-10">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-gray-900">{announcement.title}</h2>
-          <Link
-            to="/announcements"
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
-          >
-            ← Back to list
-          </Link>
+   <Button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800"
+        >
+          <ArrowLeft className="w-5 h-5" /> Back
+        </Button>
         </div>
 
         <p className="text-gray-600 mb-4">

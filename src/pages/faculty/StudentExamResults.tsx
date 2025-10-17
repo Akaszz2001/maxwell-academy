@@ -163,7 +163,11 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home, BookOpen } from "lucide-react";
 
 const StudentExamResults: React.FC = () => {
-  const { examId, studentId } = useParams();
+  const params = useParams();
+const examId=params.examId
+const studentId=params.studentId
+  console.log("EXAM",examId);
+  
   const { answers, fetchExamAnswers } = useExamResultStore();
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -181,7 +185,7 @@ const StudentExamResults: React.FC = () => {
       }
     };
     fetchStudentResults();
-  }, [examId, studentId, answers, fetchExamAnswers]);
+  }, [examId, studentId,fetchExamAnswers]);
 
   return (
     <Box sx={{ p: 3, w: "100%" }} className="w-full">

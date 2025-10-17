@@ -3,17 +3,18 @@ import { toast } from "react-toastify";
 import { useAuthStore } from "@/store/authStore";
 import type { User } from "@/store/authStore";
 import pb from "@/services/pocketbase";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentList({role}) {
   const { fetchStudents, students, isLoading, error } = useAuthStore();
   const [editingId, setEditingId] = useState<string | null>(null);
-
+const navigate=useNavigate()
   // Load students from store on mount
   useEffect(() => {
     console.log(role);
     
     fetchStudents(role).catch(() => toast.error("Failed to fetch students ❌"));
-    console.log(students);
+    console.log("STUDENTS",students);
     
   }, [role,fetchStudents]);
 
@@ -83,22 +84,27 @@ const handleChange = (id: string, field: keyof User, value: string) => {
               <th className="px-4 py-2 text-left">Phone</th>
            { role==="faculty" && <th className="px-4 py-2 text-left">Subject</th>}
               <th className="px-4 py-2 text-left">Photo</th>
+              <th className="px-4 py-2 text-left">Verification</th>
+
               <th className="px-4 py-2 text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {students?.map((s) => (
+        
+              
               <tr key={s.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-2">
                   {editingId === s.id ? (
                     <input
+                   
                       type="text"
                       value={s.name}
                       onChange={(e) => handleChange(s.id, "name", e.target.value)}
                       className="border p-2 rounded-lg w-full"
                     />
                   ) : (
-                    <span>{s.name}</span>
+                    <span  onClick={()=>s.role==='student'&& navigate(`/admin/dashboard/userExams/${s.id}`)}>{s.name}</span>
                   )}
                 </td>
 
@@ -156,6 +162,12 @@ const handleChange = (id: string, field: keyof User, value: string) => {
                   ) : (
                     <span className="text-gray-400 italic">No photo</span>
                   )}
+                </td>
+
+                <td className="px-4 py-2">
+                
+               <span className="text-gray-400 italic">{s.verified}</span>
+                  
                 </td>
 
                 <td className="px-4 py-2 text-center flex gap-2 justify-center">

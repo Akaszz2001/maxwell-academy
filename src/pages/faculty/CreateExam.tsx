@@ -595,7 +595,7 @@ export default function CreateExam() {
                 <button
                   type="button"
                   onClick={() =>
-                   navigate(`/faculty/dashboard/exams/${examId}/questions`)
+                   navigate(`/faculty/dashboard/exams/${examId}/questions`,{state:{subject:formData.subject,topic:formData.name,classs:formData.classs}})
                   }
                   className="flex-1 px-4 py-2 rounded-full bg-indigo-500 text-white font-medium shadow hover:bg-indigo-600 hover:scale-105 transition"
                 >

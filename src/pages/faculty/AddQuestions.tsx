@@ -589,6 +589,8 @@ export default function AddQuestions() {
   const {user}=useAuthStore()
 const location = useLocation()
 const {subject,topic,classs}=location.state || {}
+console.log(subject,topic,classs);
+
   const [activeTab, setActiveTab] = useState<"image" | "csv" | "xlsx" | null>(
     null
   );
@@ -699,9 +701,9 @@ useEffect(() => {
       // Reset state after success
       setImageFiles([]);
       setAnswers({});
-      setSharedSubject("");
-      setSharedTopic("");
-      setSharedClass("");
+      // setSharedSubject("");
+      // setSharedTopic("");
+      // setSharedClass("");
       toast.success("Image questions saved successfully!");
     } catch (error) {
       console.error("Error saving image questions:", error?.response?.data?.message);
@@ -1043,7 +1045,12 @@ console.log(err);
       {activeTab && (
         <div className="text-center mt-8">
           <button
-            onClick={() => navigate("/faculty/dashboard")}
+          onClick={() => 
+  user?.role === "faculty" 
+    ? navigate("/faculty/dashboard") 
+    : navigate("/admin/dashboard")
+}
+
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-semibold"
           >
             Finish

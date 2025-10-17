@@ -80,7 +80,7 @@ export default function PerformersList() {
       </div>
 
       {/* Add New Performer */}
-      {(user?.role === "admin" || user?.role === "faculty") && (
+      {/* {(user?.role === "admin" || user?.role === "faculty") && (
         <div className="flex justify-center mt-10">
           <button
             onClick={() => navigate("/admin/dashboard/performers/add")}
@@ -89,7 +89,7 @@ export default function PerformersList() {
             + Add New Performer
           </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

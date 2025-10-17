@@ -113,7 +113,7 @@ console.log("EXAM RESULTS ",attempts);
                   color: isPassed ? "success.dark" : "error.dark",
                 }}
               >
-                {isPassed ? "✅ You Passed!" : "❌ You Failed"}
+                {isPassed ? "✅ Pass:You have Passed. Congratulations.." : "❌ Failed:“Don’t give up! Keep Trying. Success will be yours.."}
               </Typography>
             </Box>
 

@@ -5,7 +5,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEventsStore } from "@/store/eventStore";
 import {
   Box,
-  Button,
+  
   Typography,
   TextField,
   CircularProgress,
@@ -13,7 +13,9 @@ import {
   CardContent,
 } from "@mui/material";
 import { ArrowLeft, Home, ImagePlus, X } from "lucide-react";
+import { toast } from "react-toastify";
 
+import { Button } from "@/components/ui/button";
 const EventForm = () => {
   const { createEvent, updateEvent, events, fetchEvents, removeImageFromEvent } =
     useEventsStore();
@@ -67,7 +69,7 @@ useEffect(() => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventname || (existingImages.length === 0 && newImages.length === 0)) {
-      alert("Event name and at least one image are required!");
+      toast.info("Event name and at least one image are required!");
       return;
     }
 
@@ -75,23 +77,44 @@ useEffect(() => {
     try {
       if (id) {
         await updateEvent(id, { eventname, description, images: newImages });
-        alert("Event updated successfully!");
+       toast.success("Event updated successfully!");
       } else {
         await createEvent({ eventname, description, images: newImages });
-        alert("Event created successfully!");
+       toast.success("Event created successfully!");
+       setDescription("")
+       setEventname("")
+       setNewImages([])
       }
       navigate("/admin/dashboard");
     } catch {
-      alert("Failed to save event.");
+     toast.error("Failed to save event.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
+     <div className="p-4 md:p-8 bg-white shadow-lg rounded-2xl max-w-4xl mx-auto mt-6">
+      { id && (
+  <div className="flex justify-between items-center mb-4">
+    <Button
+      onClick={() => navigate(-1)}
+      className="flex items-center gap-2 bg-gray-200 hover:bg-gray-400 text-white"
+    >
+      <ArrowLeft className="w-5 h-5" /> Back
+    </Button>
+    <Button
+     onClick={() => navigate("/admin/dashboard")}
+      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+    >
+      <Home className="w-5 h-5" /> Dashboard
+    </Button>
+  </div>
+)}
+    
     <Box sx={{ p: 3, width: "100%" }} className="w-full">
       {/* 🔹 Top Bar */}
-     { id &&<div className="flex justify-between items-center mb-4">
+     {/* { id &&<div className="flex justify-between items-center mb-4">
             <Button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800"
@@ -105,7 +128,10 @@ useEffect(() => {
         >
           <Home className="w-5 h-5" /> Dashboard
         </Button>
-      </div>}
+      </div>} */}
+
+
+
 
       {/* 🔹 Heading */}
       <div className="flex items-center justify-center mb-6">
@@ -241,6 +267,7 @@ useEffect(() => {
         </CardContent>
       </Card>
     </Box>
+    </div>
   );
 };
 

@@ -1,7 +1,8 @@
 
 
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useQuestionStore } from "@/store/questionStore";
 import pb from "@/services/pocketbase";
@@ -13,9 +14,11 @@ import { useAuthStore } from "@/store/authStore";
 export default function EditQuestions() {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
-
+const location=useLocation()
   const { getQuestionsByExam, updateQuestion, deactivateQuestion } =
     useQuestionStore();
+const {subject,topic,classs}=location.state || null
+console.log(subject,topic,classs);
 
   const [activeQuestions, setActiveQuestions] = useState<any[]>([]);
   const [otherQuestions, setOtherQuestions] = useState<any[]>([]);
@@ -155,7 +158,7 @@ const {user}=useAuthStore()
       <div className="mt-6 flex flex-col md:flex-row justify-between gap-4">
         <button
           onClick={() =>
-            navigate(`/faculty/dashboard/exams/${examId}/questions/add`)
+            navigate(`/faculty/dashboard/exams/${examId}/questions/add`,{state:{subject:subject,topic:topic,classs:classs}})
           }
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition w-full md:w-auto"
         >

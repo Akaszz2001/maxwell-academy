@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePerformerStore, type Performer } from "@/store/performersStore";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Home } from "lucide-react";
 
 export default function PerformerForm() {
   const { id } = useParams<{ id?: string }>();
@@ -84,6 +86,22 @@ export default function PerformerForm() {
 
   return (
     <div className="max-w-lg mx-auto mt-10 p-8 bg-white shadow-xl rounded-2xl border border-gray-100">
+      {id&& 
+        <div className="flex justify-between items-center mb-4">
+          <Button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 bg-gray-200 hover:bg-gray-400 text-white"
+          >
+            <ArrowLeft className="w-5 h-5" /> Back
+          </Button>
+          <Button
+           onClick={() => navigate("/admin/dashboard")}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Home className="w-5 h-5" /> Dashboard
+          </Button>
+        </div>
+      }
       <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
         {id ? "Edit Performer" : "Add Performer"}
       </h2>

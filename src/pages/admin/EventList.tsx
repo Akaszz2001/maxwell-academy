@@ -117,6 +117,8 @@ import Slider from "react-slick";
 import { ChevronLeft, ChevronRight, Trash2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
+import { toast } from "react-toastify";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const NextArrow = ({ onClick }: { onClick?: () => void }) => (
   <div
@@ -141,6 +143,9 @@ const EventsGallery = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const [deletemsg,showDeleteMsg]=useState(false)
+  const [deleventid,setDelEventId]=useState("")
+
 
   // Modal state
   const [selectedEvent, setSelectedEvent] = useState(null as any);
@@ -154,16 +159,34 @@ const EventsGallery = () => {
     load();
   }, [fetchEvents]);
 
-  const handleDelete = async (id: string) => {
-    const confirmed = window.confirm("Are you sure you want to delete this event?");
-    if (!confirmed) return;
+   const confirmDelEvent=async()=>{
+          showDeleteMsg(false)
+   try {
 
-    try {
-      await deleteEvent(id);
-      alert("Event deleted successfully!");
+      await deleteEvent(deleventid);
+      toast.success("Event deleted successfully!");
+        setDelEventId("")
     } catch (err) {
-      alert("Failed to delete event.");
+      toast.error("Failed to delete event.");
     }
+   }
+const cancelDelEvent=()=>{
+   showDeleteMsg(false)
+}
+
+  const handleDelete = async (id: string) => {
+
+    setDelEventId(id)
+    showDeleteMsg(true)
+    // const confirmed = window.confirm("Are you sure you want to delete this event?");
+    // if (!confirmed) return;
+
+    // try {
+    //   await deleteEvent(id);
+    //   toast.success("Event deleted successfully!");
+    // } catch (err) {
+    //   toast.error("Failed to delete event.");
+    // }
   };
 
   const openModal = (event: any) => {
@@ -212,7 +235,7 @@ const EventsGallery = () => {
             <div className="relative">
               <Slider {...sliderSettings}>
                 {event.images?.map((img, idx) => (
-                  <img
+                  <img  onClick={() => openModal(event)}
                     key={idx}
                     src={img}
                     alt={event.eventname}
@@ -224,7 +247,7 @@ const EventsGallery = () => {
 
             <div
               className="p-4 cursor-pointer"
-              onClick={() => openModal(event)}
+              onClick={() =>user?.role==="admin"&& navigate(`/admin/dashboard/addEvent/${event.id}`)}
             >
               <h3 className="font-semibold text-xl mb-2">{event.eventname}</h3>
               <h3 className="text-gray-500 line-clamp-2 overflow-hidden">
@@ -234,7 +257,10 @@ const EventsGallery = () => {
           </div>
         ))}
       </div>
-
+{
+  deletemsg && 
+  <ConfirmDialog title="Delete the event" message="Are you sure you want to delete this event?" confirmText="Yes" cancelText="No"  onConfirm={confirmDelEvent} onCancel={cancelDelEvent}/>
+}
       {/* Modal */}
       {isModalOpen && selectedEvent && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-start z-50 overflow-auto pt-20 p-4">

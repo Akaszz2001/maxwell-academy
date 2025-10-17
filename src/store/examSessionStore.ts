@@ -240,6 +240,8 @@ export const useExamSessionStore = create<ExamSessionState>((set, get) => ({
 
   // finishExam: async (examId) => {
   //   const { answers } = get();
+  //   console.log(answers);
+    
   //   const userId = pb.authStore.model?.id;
   //   if (!userId) throw new Error("Not logged in");
 
@@ -326,6 +328,8 @@ export const useExamSessionStore = create<ExamSessionState>((set, get) => ({
 
   finishExam: async (examId) => {
   const { answers } = get();
+  console.log(answers);
+  
   const userId = pb.authStore.model?.id;
   if (!userId) throw new Error("Not logged in");
 
@@ -372,14 +376,28 @@ export const useExamSessionStore = create<ExamSessionState>((set, get) => ({
     const qId = question.id;
     const ans = answers[qId] || "not answered"; // default if skipped
 
+
+  
+//   if (
+//   question.answer?.toLowerCase().trim() === ans.toLowerCase().trim()
+// ) {
+//   score += mark; // ✅ correct answer
+// } else {
+//   score -= negMark; // ❌ wrong answer only
+// }
+
+
+  if (ans !== "not answered") {
     if (
-      ans !== "not answered" &&
       question.answer?.toLowerCase().trim() === ans.toLowerCase().trim()
     ) {
-      score += mark; // ✅ correct answer
+      score += mark; // correct
     } else {
-      score -= negMark; // ❌ wrong or unanswered
+      score -= negMark; // wrong
     }
+  }
+
+
 
     try {
       const existing = await pb

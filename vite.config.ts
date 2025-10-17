@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server:{
     allowedHosts:[
-        "will-opposite-nil-district.trycloudflare.com"
+        "maxwell.maxwellacademy.in"
     ]
   }
 })

@@ -428,29 +428,54 @@ export default function AnnouncementForm() {
     <div className="p-4 md:p-8 bg-white shadow-lg rounded-2xl max-w-4xl mx-auto mt-6">
       {/* --- Top Buttons --- */}
       {announceId && (
-        <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-          <Button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 w-full sm:w-auto"
-          >
-            <ArrowLeft className="w-5 h-5" /> Back
-          </Button>
+        // <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
+        //   <Button
+        //     onClick={() => navigate(-1)}
+        //     className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 w-full sm:w-auto"
+        //   >
+        //     <ArrowLeft className="w-5 h-5" /> Back
+        //   </Button>
 
-          <Button
-            asChild
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
-          >
-            <Link
-              to={
-                user?.role === "admin"
-                  ? "/admin/dashboard"
-                  : "/faculty/dashboard"
-              }
-            >
-              <Home className="w-5 h-5" /> Dashboard
-            </Link>
-          </Button>
-        </div>
+        //   <Button
+        //     asChild
+        //     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+        //   >
+        //     <Link
+        //       to={
+        //         user?.role === "admin"
+        //           ? "/admin/dashboard"
+        //           : "/faculty/dashboard"
+        //       }
+        //     >
+        //       <Home className="w-5 h-5" /> Dashboard
+        //     </Link>
+        //   </Button>
+        // </div>
+
+        <div className="flex flex-wrap justify-between items-center mb-6 gap-3">
+  <Button
+    onClick={() => navigate(-1)}
+    className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 text-sm md:text-base w-auto"
+  >
+    <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" /> Back
+  </Button>
+
+  <Button
+    asChild
+    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm md:text-base w-auto"
+  >
+    <Link
+      to={
+        user?.role === "admin"
+          ? "/admin/dashboard"
+          : "/faculty/dashboard"
+      }
+    >
+      <Home className="w-4 h-4 md:w-5 md:h-5" /> Dashboard
+    </Link>
+  </Button>
+</div>
+
       )}
 
       {/* --- Form Content --- */}

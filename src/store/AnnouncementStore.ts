@@ -111,6 +111,7 @@ interface AnnouncementState {
   fetchAnnouncementsById: (id: string) => Promise<Announcement | null>;
   updateAnnouncement: (id: string, data: Announcement) => Promise<void>;
    fetchAnnouncementsByRole: () => Promise<void>; // <-- new
+   deleteAnnouncement:(id:string)=>Promise<void>
 }
 
 export const useAnnouncementStore = create<AnnouncementState>((set) => ({
@@ -277,4 +278,25 @@ fetchAnnouncementsById: async (id: string) => {
       set({ error: (err as Error).message, isLoading: false });
     }
   },
+  // Delete an announcement by ID
+deleteAnnouncement: async (id: string) => {
+  try {
+    set({ isLoading: true, error: null });
+
+    // Delete from PocketBase
+    await pb.collection("announcements").delete(id);
+
+    // Update local state after deletion
+    set((state) => ({
+      announcements: state.announcements.filter((a) => a.id !== id),
+      isLoading: false,
+    }));
+
+    console.log("Deleted announcement:", id);
+  } catch (err) {
+    console.error("Error deleting announcement:", err);
+    set({ error: (err as Error).message, isLoading: false });
+  }
+},
+
 }));

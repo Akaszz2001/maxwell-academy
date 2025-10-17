@@ -101,15 +101,20 @@ import FacultyGalleryList from "./pages/admin/FacultyGalleryList";
 import PerformerForm from "./pages/admin/Performance";
 import PerformersList from "./pages/admin/PerformersList";
 import TopPerformers from "./pages/TopTopPerformers";
+import UserAttemptedExams from "./pages/admin/UserAttemptedExams";
 const noNavbarPatterns: RegExp[] = [
   /^\/student\/dashboard\/?$/, // student dashboard exact
   /^\/admin\/dashboard\/?$/, // student dashboard exact
    /^\/admin\/dashboard\/addEvent\/?$/, // student dashboard exact
    /^\/admin\/dashboard\/eventList\/?$/, // student dashboard exact
    /^\/admin\/dashboard\/eventList\/w+$/, // student dashboard exact
+   /^\/admin\/dashboard\/userExams\/w+$/, // student dashboard exact
   /^\/student\/dashboard\/allExams\/?$/, // allExams list
   /^\/admin\/dashboard\/createAnnouncement\/?$/, // allExams list
   /^\/admin\/dashboard\/editAnnouncement\/\w+$/, // allExams list
+  /^\/admin\/dashboard\/editPerformer\/\w+$/, // allExams list
+  /^\/admin\/dashboard\/createFacultyGallery\/\w+$/, // allExams list
+  /^\/admin\/dashboard\/addEvent\/\w+$/, // allExams list
   /^\/admin\/dashboard\/showCredential\/?$/, // allExams list
   /^\/admin\/dashboard\/addQuestions\/?$/, // allExams list
   /^\/student\/dashboard\/allExams\/\w+$/, // exam window (dynamic examId)
@@ -140,7 +145,7 @@ function App() {
   return (
     <div>
       {!hideNavbar && <Navbar />}
-      <div className={!hideNavbar ? "pt-20" : ""}>
+      <div className={!hideNavbar ? "pt-1" : ""}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/aboutUs" element={<AboutUs />} />
@@ -343,6 +348,24 @@ function App() {
             }
           />
 
+          <Route
+            path="/admin/dashboard/userExams/:studentId"
+            element={
+              <RequireAuth roles={["admin"]}>
+               <UserAttemptedExams/>
+              </RequireAuth>
+            }
+          />
+        
+          <Route
+            path="/admin/dashboard/userExams/:studentId/answers/:examId"
+            element={
+              <RequireAuth roles={["admin"]}>
+                <StudentExamResults />
+              </RequireAuth>
+            }
+          />
+
 
 
 
@@ -407,7 +430,7 @@ function App() {
             }
           />
           <Route
-            path="/faculty/dashboard/studentResults/:examId/studentList"
+          path="/faculty/dashboard/studentResults/:examId/studentList"
             element={
               <RequireAuth roles={["faculty"]}>
                 <AttendedStudentsList />
