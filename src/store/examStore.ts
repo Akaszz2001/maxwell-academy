@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 
 // src/store/examStore.ts
@@ -72,7 +73,7 @@ export const useExamStore = create<ExamState>((set) => ({
       const newExam = await pb.collection("exams").create({
         ...examData,
         createdBy: user.id,
-        isActive: true, // default active
+        isActive: false, // default active
       });
 
       set((state) => ({
@@ -178,7 +179,7 @@ console.log("UPDATED EXAM",updated);
         ),
         isLoading: false,
       }));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (err: any) {
       console.log(err);
       
@@ -199,7 +200,7 @@ console.log("UPDATED EXAM",updated);
         ),
         isLoading: false,
       }));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     } catch (err: any) {
       console.log(err);
       
@@ -278,8 +279,9 @@ duplicateExam: async (examId: string, newExamData?: Partial<Exam>) => {
     if (!user) throw new Error("Not authenticated");
 
     // Remove system fields PocketBase won’t accept
-    const { id, created, updated, expand, ...cleanExam } = originalExam;
-
+    const { id, created, updated, ...cleanExam } = originalExam;
+    console.log(id,created,updated);
+    
     const newExam = await pb.collection("exams").create({
       ...cleanExam,
       ...newExamData,

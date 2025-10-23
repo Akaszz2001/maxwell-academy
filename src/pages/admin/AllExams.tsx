@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -99,7 +100,7 @@ export default function AllExams() {
                   size="icon"
                   title="Edit exam"
                   onClick={() =>
-                    navigate(`/faculty/dashboard/exams/${exam.id}/edit`)
+                    navigate(`/admin/dashboard/exams/${exam.id}/edit`)
                   }
                   className="rounded-full bg-blue-500 text-white hover:bg-blue-600 shadow-md hover:scale-110 transition"
                 >

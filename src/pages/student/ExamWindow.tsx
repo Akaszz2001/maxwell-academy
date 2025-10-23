@@ -467,7 +467,7 @@
 //   );
 // }
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useExamSessionStore } from "../../store/examSessionStore";
 import pb from "../../services/pocketbase";
@@ -519,7 +519,7 @@ export default function ExamWindow() {
   const [visited, setVisited] = useState<Set<number>>(new Set());
 
   const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [attempt, setAttempt] = useState<ExamAttempt | null>(null);
+  const [, setAttempt] = useState<ExamAttempt | null>(null);
   const userId = pb.authStore.model?.id;
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
@@ -529,6 +529,12 @@ export default function ExamWindow() {
     setVisited((prev) => new Set([...prev, idx]));
     setCurrent(idx);
   };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleFinish = () => {
+    if (!exam) return;
+    setShowConfirm(true); // show modal instead of using window.confirm
+  };
+
 
 
   // Track visited questions automatically
@@ -539,7 +545,7 @@ export default function ExamWindow() {
 
   // --- Keep your existing logic (unchanged) ---
   useEffect(() => {
-    const handlePageShow = async (e: PageTransitionEvent) => {
+    const handlePageShow = async (_e: PageTransitionEvent) => {
       if (examId && userId) {
         try {
           const attempt = await pb
@@ -552,7 +558,10 @@ export default function ExamWindow() {
           if (attempt.status.includes("completed")) {
             navigate("/student/dashboard/", { replace: true });
           }
-        } catch { }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch(err:any) {
+          toast.error(err)
+         }
       }
     };
 
@@ -574,7 +583,10 @@ export default function ExamWindow() {
           navigate("/student/dashboard/");
           return;
         }
-      } catch { }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch(err:any) { 
+        toast.error(err)
+      }
 
       const exam = await pb.collection("exams").getOne<Exam>(examId!);
       const examQuestions = await pb.collection("exam_questions").getFullList({
@@ -593,7 +605,7 @@ export default function ExamWindow() {
     };
 
     fetchExamData();
-  }, [examId]);
+  }, [examId, navigate, setExam, userId]);
 
   useNavigationBlocker(() => {
     const confirmLeave = window.confirm(
@@ -653,7 +665,7 @@ export default function ExamWindow() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [exam]);
+  }, [exam, handleFinish]);
 
   useEffect(() => {
     if (exam) {
@@ -684,18 +696,14 @@ export default function ExamWindow() {
   //     navigate("/student/dashboard/");
   //   });
   // };
-  const handleFinish = () => {
-    if (!exam) return;
-    setShowConfirm(true); // show modal instead of using window.confirm
-  };
-
 
 
   const confirmSubmit = () => {
+    const eid=exam?.id||''
     setShowConfirm(false); // hide modal
-    finishExam(exam.id).then(() => {
-      localStorage.removeItem(`exam_${exam.id}_answers`);
-      localStorage.removeItem(`exam_${exam.id}_time`);
+    finishExam(eid).then(() => {
+      localStorage.removeItem(`exam_${eid}_answers`);
+      localStorage.removeItem(`exam_${eid}_time`);
       toast.success("Exam submitted successfully")
       setShowSuccess(true)
       setTimeout(() => {
@@ -930,3 +938,4 @@ export default function ExamWindow() {
     </div>
   );
 }
+

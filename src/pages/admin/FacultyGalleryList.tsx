@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect } from "react";
 import { useFacultyGalleryStore } from "@/store/facultyGalleryStore";
 import { Trash2 } from "lucide-react";
@@ -35,7 +36,7 @@ const {user}=useAuthStore()
             {/* Passport Photo */}
             <div className="w-32 h-40 bg-gray-100 rounded-md overflow-hidden shadow-sm">
               <img
-                src={faculty.imageUrl}
+                src={faculty.imageUrl ||""}
                 alt={faculty.name}
                 className="w-full h-full object-cover"
               />

@@ -1,13 +1,25 @@
 
 
-import React, { useState } from "react";
-import { Menu, BookOpen, CheckCircle, Clock, Trophy, Calendar, Play, Target, Home, BarChart3, Users, Settings, LogOut, X, Library, FilePlus, Award, GraduationCap, School, ClipboardPlus, FileText, FileQuestion, User, UserPlus, UserCheck, Speaker, Megaphone, LucideMegaphone, MegaphoneOff, MapPinCheckInside, MegaphoneIcon, PlusCircle, ImagePlus, Images, Plus, User2Icon } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
+import { Home, LogOut, X,  GraduationCap, School, ClipboardPlus, FileText, FileQuestion, User,  UserCheck,  Megaphone,  MegaphoneIcon, PlusCircle, ImagePlus, Images, Plus, User2Icon } from "lucide-react";
+
+
+
 import { useAuthStore } from "@/store/authStore";
+interface AdminSidebarProps {
+  isSidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  activeRoute: string;
+  setActiveRoute: (route: string) => void;
+}
 
 // Sidebar Component
-const AdminSidebar = ({ isSidebarOpen, setSidebarOpen, activeRoute, setActiveRoute }) => {
+const AdminSidebar: React.FC<AdminSidebarProps> = ({
+  isSidebarOpen,
+  setSidebarOpen,
+  activeRoute,
+  setActiveRoute
+}) => {
         const {signOut}=useAuthStore()
 
   const navigationItems = [

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 
 import { useEffect, useState } from "react";
@@ -42,7 +44,7 @@ const {user}=useAuthStore()
 
   useEffect(() => {
     fetchQuestions();
-  }, [examId, getQuestionsByExam]);
+  }, [examId, fetchQuestions, getQuestionsByExam]);
 
   const handleDeactivate = async (id: string) => {
     try {
@@ -157,8 +159,9 @@ const {user}=useAuthStore()
       {/* Top buttons */}
       <div className="mt-6 flex flex-col md:flex-row justify-between gap-4">
         <button
-          onClick={() =>
-            navigate(`/faculty/dashboard/exams/${examId}/questions/add`,{state:{subject:subject,topic:topic,classs:classs}})
+          onClick={() =>user?.role==='admin'?
+            navigate(`/admin/dashboard/exams/${examId}/questions/add`,{state:{subject:subject,topic:topic,classs:classs}}):
+            navigate(`/admin/dashboard/exams/${examId}/questions/add`,{state:{subject:subject,topic:topic,classs:classs}})
           }
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition w-full md:w-auto"
         >

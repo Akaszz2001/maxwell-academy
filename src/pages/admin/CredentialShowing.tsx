@@ -1,15 +1,16 @@
-import React, { useRef } from "react";
+import  { useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Home } from "lucide-react"; // Assuming lucide-react is installed
 import * as htmlToImage from "html-to-image";
 import { Button } from "@/components/ui/button"; // Adjust path if needed
+import { useAuthStore } from "@/store/authStore";
 
 export default function CredentialShowing() {
   const location = useLocation();
   const navigate = useNavigate();
   const formData = location.state || {};
   const captureRef = useRef<HTMLDivElement>(null);
-
+const {user}=useAuthStore()
   const takeScreenshot = async () => {
     console.log(formData)
     if (!captureRef.current) return;
@@ -39,7 +40,7 @@ export default function CredentialShowing() {
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-6 flex flex-col items-center">
       {/* Top navigation buttons */}
-      <div className="w-full max-w-7xl flex justify-between items-center mb-6 px-2 md:px-0">
+ { user &&    <div className="w-full max-w-7xl flex justify-between items-center mb-6 px-2 md:px-0">
         <Button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition"
@@ -55,7 +56,7 @@ export default function CredentialShowing() {
             <Home className="w-5 h-5" /> Dashboard
           </Link>
         </Button>
-      </div>
+      </div>}
 
       {/* Signup success card */}
       <div
@@ -68,9 +69,8 @@ export default function CredentialShowing() {
           🎉 Successfully Created Faculty Account
         </h2>}
         <p className="text-gray-700 mb-6 text-lg">
-          Dear <span className="font-semibold">{formData.name}</span>, this is your account credentials dont share with others
-        </p>
-
+         Dear <span className="font-semibold">{formData.name}</span>, these are your account credentials. Do not share them with others. {!user && "You must wait until the admin verifies your account before you can log in."}
+</p>
         <div className="space-y-3 text-left bg-gray-50 p-5 rounded-xl shadow-inner">
           <p>
             <span className="font-semibold">Name:</span> {formData.name}

@@ -1,4 +1,5 @@
-/* eslint-disable no-empty */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 // src/store/adminQuestionStore.ts
 import { create } from "zustand";
 import pb from "@/services/pocketbase"; // your PocketBase instance
@@ -71,7 +72,7 @@ export const useAdminQuestionStore = create<AdminQuestionState>((set) => ({
 
           createdQuestion = await pb.collection("questions").create(formData);
             }catch(err){
-                    console.log("ADMIN IMAGE QUESTIONS",err.message);
+                    console.log("ADMIN IMAGE QUESTIONS",err);
                     
             }
         

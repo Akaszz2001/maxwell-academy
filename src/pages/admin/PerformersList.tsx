@@ -41,13 +41,27 @@ export default function PerformersList() {
             className="bg-white rounded-2xl shadow-md p-5 flex flex-col items-center text-center transition hover:shadow-xl relative group"
           >
             {/* Performer Photo */}
-            {performer.photo && (
-              <img
-                src={performer.photo}
-                alt={performer.name}
-                className="w-28 h-28 rounded-full object-cover border-4 border-blue-100 mb-3 shadow-sm"
-              />
-            )}
+     {performer.photo && (
+                <img
+  src={
+    performer.photo instanceof File
+      ? URL.createObjectURL(performer.photo) // convert File to URL 
+      : performer.photo || "/placeholder.png" // existing URL or fallback
+  }
+  alt={performer.name || "Performer"}
+  className="w-28 h-36 object-cover rounded-lg border-4 border-blue-100 mb-3 shadow-sm"
+/>
+  // <img
+  //   src={
+  //   performer.photo instanceof File
+  //     ? URL.createObjectURL(performer.photo) // convert File to URL 
+  //     : performer.photo || "/placeholder.png" // existing URL or fallback
+  // }
+  //   alt={performer.name || "Performer"}
+  //   className="w-28 h-36 object-cover rounded-lg border-4 border-blue-100 mb-3 shadow-sm"
+  // />
+)}
+
 
             {/* Performer Details */}
             <h3 className="text-lg font-semibold">{performer.name}</h3>

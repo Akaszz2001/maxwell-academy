@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useAnnouncementStore } from "@/store/announcementStore";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAnnouncementStore } from "@/store/AnnouncementStore";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -16,22 +17,24 @@ const navigate=useNavigate()
     const visited = JSON.parse(localStorage.getItem("visitedAnnouncements") || "{}");
 
 // initialize user key if not exists
-if (!visited[user.id]) visited[user.id] = [];
+if (user &&!visited[user?.id]) visited[user.id] = [];
 
 // mark current announcement as visited
-if (!visited[user.id].includes(announceID)) {
+if (user &&!visited[user.id].includes(announceID)) {
   visited[user.id].push(announceID);
   localStorage.setItem("visitedAnnouncements", JSON.stringify(visited));
 }
-  }, [announceID]);
+  }, [announceID, user]);
   
   useEffect(() => {
     if (announceID) {
        
         
       fetchAnnouncementsById(announceID).then(setAnnouncement);
+      console.log(announcement);
+      
     }
-  }, [announceID,fetchAnnouncementsById]);
+  }, [announceID, announcement, fetchAnnouncementsById]);
 
   if (isLoading || !announcement)
     return (

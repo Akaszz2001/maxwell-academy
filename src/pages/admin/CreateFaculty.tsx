@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // import { useState } from "react";
 // import { useAuthStore } from "../../store/authStore";
@@ -172,23 +173,31 @@ export default function CreateFacultyPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    try {
-      await signUp(formData, "faculty"); // pass role
-      toast.success("Successfully created Faculty account");
-      setTimeout(
-        () =>
-          navigate("/admin/dashboard/showCredential", {
-            state: { ...formData, role: "faculty" },
-          }),
-        1000
-      );
-    } catch (err: any) {
-      alert(err.message);
-    }
-  };
+  try {
+
+    const payload = { 
+      ...formData, 
+      phone: Number(formData.phone) 
+    };
+
+    await signUp(payload, "faculty"); // pass role
+    toast.success("Successfully created Faculty account");
+
+    setTimeout(
+      () =>
+        navigate("/admin/dashboard/showCredential", {
+          state: { ...payload, role: "faculty" },
+        }),
+      1000
+    );
+  } catch (err: any) {
+    alert(err.message);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">

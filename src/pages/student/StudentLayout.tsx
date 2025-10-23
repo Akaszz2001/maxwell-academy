@@ -6,7 +6,7 @@ import ExamList from "./ExamList";
 import ExamResults from "./ExamResults";
 import ExamReview from "./ExamReview";
 import AnnouncementList from "../AnnouncementList";
-import { useAnnouncementStore } from "@/store/announcementStore";
+import { useAnnouncementStore } from "@/store/AnnouncementStore";
 import { useAuthStore } from "@/store/authStore";
 
 export default function StudentLayout() {
@@ -45,7 +45,7 @@ const {user}=useAuthStore()
   
 useEffect(() => {
   // current logged-in user
-  if (!user.id) return;
+  if (!user?.id) return;
 
   const visitedByUser = JSON.parse(localStorage.getItem("visitedAnnouncements") || "{}");
 

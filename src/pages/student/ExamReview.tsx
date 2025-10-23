@@ -196,35 +196,36 @@ const ExamReview: React.FC = () => {
       }}
     >
       {/* 🔹 Top Row (Back + Dashboard) */}
-      <Grid
-        container
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 2 }}
-      >
-        <Grid item>
-          <IconButton
-            onClick={() => navigate(-1)}
-            sx={{
-              bgcolor: "white",
-              border: "1px solid #e2e8f0",
-              "&:hover": { bgcolor: "#f1f5f9" },
-            }}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </IconButton>
-        </Grid>
-        <Grid item>
-          <Button
-            asChild
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Link to="/student/dashboard">
-              <Home className="w-5 h-5" /> Dashboard
-            </Link>
-          </Button>
-        </Grid>
-      </Grid>
+     <Grid
+  container
+  justifyContent="space-between"
+  alignItems="center"
+  sx={{ mb: 2 }}
+>
+  <Grid  component="div">
+    <IconButton
+      onClick={() => navigate(-1)}
+      sx={{
+        bgcolor: "white",
+        border: "1px solid #e2e8f0",
+        "&:hover": { bgcolor: "#f1f5f9" },
+      }}
+    >
+      <ArrowLeft className="w-5 h-5" />
+    </IconButton>
+  </Grid>
+  <Grid  component="div">
+    <Button
+      asChild
+      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+    >
+      <Link to={user?.role==='admin' ? "/admin/dashboard":"/student/dashboard"}>
+        <Home className="w-5 h-5" /> Dashboard
+      </Link>
+    </Button>
+  </Grid>
+</Grid>
+
 
       {/* 🔹 Heading + Subtitle */}
       <Box sx={{ mb: 4 }}>

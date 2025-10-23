@@ -1,210 +1,28 @@
-
-// import { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import { useAuthStore, convertToUser } from "../../store/authStore";
-// import { Eye, EyeOff } from "lucide-react";
-// import Person from "../../assets/person.png";
-
-// export default function Login() {
-//   const navigate = useNavigate();
-//   const { signIn } = useAuthStore();
-//   const setAuth = useAuthStore((state) => state.setAuth);
-//   const { isAuthenticated, user } = useAuthStore();
-
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState("");
-//   const [showPassword, setShowPassword] = useState(false);
-
-//   const handleLogin = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setLoading(true);
-//     setError("");
-
-//     try {
-//       const { user, token } = await signIn(email, password);
-//       const userData = convertToUser(user);
-//       setAuth(userData, token);
-
-//       navigate(getDashboardPath(userData.role));
-//     } catch (err: any) {
-//       setError("Invalid email or password");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const getDashboardPath = (role: string): string => {
-//     switch (role) {
-//       case "admin":
-//         return "/admin/dashboard";
-//       case "faculty":
-//         return "/faculty/dashboard";
-//       case "student":
-//         return "/student/dashboard";
-//       default:
-//         return "/student/dashboard";
-//     }
-//   };
-
-//   const handleForgotPassword = () => {
-//     console.log("Forgot password clicked");
-//   };
-
-//   const handleSignUp = () => {
-//     navigate("/signup");
-//   };
-
-//   useEffect(() => {
-//     if (isAuthenticated === false) {
-//       navigate("/login");
-//     } else if (user?.role === "student") {
-//       navigate("/student/dashboard");
-//     } else if (user?.role === "admin") {
-//       navigate("/admin/dashboard");
-//     } else if (user?.role === "faculty") {
-//       navigate("/faculty/dashboard");
-//     }
-//   }, [isAuthenticated, user, navigate]);
-
-//   return (
-//     <div className="min-h-screen bg-gray-50 flex">
-//       {/* Left Section - Login Form */}
-//       <div className="flex-1 flex items-center justify-center p-8">
-//         <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
-//           <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-//             Welcome Back!
-//           </h1>
-
-//           {error && (
-//             <div className="bg-red-100 text-red-700 p-2 mb-4 text-center rounded">
-//               {error}
-//             </div>
-//           )}
-
-//           <form onSubmit={handleLogin} className="space-y-6">
-//             {/* Email */}
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Email
-//               </label>
-//               <input
-//                 type="email"
-//                 value={email}
-//                 required
-//                 onChange={(e) => setEmail(e.target.value)}
-//                 placeholder="Enter your email"
-//                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-//               />
-//             </div>
-
-//             {/* Password */}
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Password
-//               </label>
-//               <div className="relative">
-//                 <input
-//                   type={showPassword ? "text" : "password"}
-//                   value={password}
-//                   required
-//                   onChange={(e) => setPassword(e.target.value)}
-//                   placeholder="Enter your password"
-//                   className="w-full p-3 border border-gray-300 rounded-lg pr-12 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-//                 />
-//                 <button
-//                   type="button"
-//                   onClick={() => setShowPassword(!showPassword)}
-//                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
-//                 >
-//                   {showPassword ? (
-//                     <EyeOff size={20} className="text-gray-400 hover:text-gray-600" />
-//                   ) : (
-//                     <Eye size={20} className="text-gray-400 hover:text-gray-600" />
-//                   )}
-//                 </button>
-//               </div>
-//             </div>
-
-//             {/* Forgot Password */}
-//             <div className="text-right">
-//               <button
-//                 type="button"
-//                 onClick={handleForgotPassword}
-//                 className="text-sm text-gray-600 hover:text-gray-800"
-//               >
-//                 Forgot Password?
-//               </button>
-//             </div>
-
-//             {/* Login Button */}
-//             <button
-//               type="submit"
-//               disabled={loading}
-//               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition"
-//             >
-//               {loading ? "Logging in..." : "Login"}
-//             </button>
-//           </form>
-
-//           {/* Divider */}
-//           <div className="text-center text-gray-500 text-sm mt-6">or</div>
-
-//           {/* Signup Link */}
-//           <div className="text-center text-sm mt-6">
-//             <span className="text-gray-600">Don’t have an account? </span>
-//             <button
-//               type="button"
-//               onClick={()=>navigate("/signup")}
-//               className="text-blue-600 hover:text-blue-800 font-semibold"
-//             >
-//               Sign up
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Right Section - Illustration with Bubbles + Semi-Circle */}
-//       <div className="hidden lg:flex flex-1 items-center justify-center relative overflow-hidden">
-//         <div className="absolute right-0 top-0 w-96 h-full bg-blue-300 rounded-l-full"></div>
-//         <div className="absolute left-48 top-1/2 transform -translate-y-1/2 z-10">
-//           <img width={300} src={Person} alt="Person Illustration" />
-//         </div>
-//         <div className="absolute left-20 bottom-20 w-20 h-20 bg-orange-200 rounded-full opacity-60"></div>
-//         <div className="absolute left-32 top-32 w-12 h-12 bg-yellow-200 rounded-full opacity-40"></div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
-
-
-
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { useState, useEffect } from 'react';
 import logo from '../../assets/officialLogo.png'; // Added logo import
 
 import { useNavigate } from "react-router-dom";
 import { useAuthStore, convertToUser } from "../../store/authStore";
 import { toast } from 'react-toastify';
+import { BookOpen, Smile, Users } from 'lucide-react';
 
 const LoginPage = () => {
    const navigate = useNavigate();
   const { signIn } = useAuthStore();
   const setAuth = useAuthStore((state) => state.setAuth);
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user} = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState("");
+  
   const [showPassword, setShowPassword] = useState(false);
 
-  const [touched, setTouched] = useState({});
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
 
 
 
@@ -235,7 +53,7 @@ const LoginPage = () => {
 
   // Mouse move effect for parallax
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: { clientX: number; clientY: number; }) => {
       setMousePosition({
         x: (e.clientX / window.innerWidth - 0.5) * 30,
         y: (e.clientY / window.innerHeight - 0.5) * 30
@@ -247,13 +65,13 @@ const LoginPage = () => {
   }, []);
 
   // Validate email
-  const validateEmail = (email) => {
+  const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
   // Validate password
-  const validatePassword = (password) => {
+  const validatePassword = (password: string | any[]) => {
     return password.length >= 6;
   };
 
@@ -271,14 +89,14 @@ const LoginPage = () => {
   // };
 
   // Handle input blur
-  const handleBlur = (e) => {
+  const handleBlur = (e: { target: { name: any; }; }) => {
     const { name } = e.target;
     setTouched(prev => ({ ...prev, [name]: true }));
     validateField(name);
   };
 
   // Validate individual field
-  const validateField = (fieldName) => {
+  const validateField = (fieldName: string) => {
     let error = '';
 
     if (fieldName === 'email') {
@@ -296,8 +114,8 @@ const LoginPage = () => {
         error = 'Password must be at least 6 characters';
       }
     }
-
-    setErrors(prev => ({ ...prev, [fieldName]: error }));
+const err=((prev: any) => ({ ...prev, [fieldName]: error }))
+    setErrors(err);
     return !error;
   };
 
@@ -331,10 +149,8 @@ const LoginPage = () => {
     
     setTouched({ email: true, password: true });
 
-    const isEmailValid = validateField('email');
-    const isPasswordValid = validateField('password');
     setLoading(true);
-    setErrors("");
+    setErrors({email:"",password:""});
 
     try {
       const { user, token } = await signIn(email, password);
@@ -344,9 +160,10 @@ const LoginPage = () => {
 
       navigate(getDashboardPath(userData.role));
     } catch (err: any) {
-      toast.error("Invalid email or password")
-      setErrors("Invalid email or password");
-    } finally {
+  toast.error(err?.message || "Invalid email or password");
+  setErrors(prev => ({ ...prev, email: "Invalid email or password" }));
+}
+ finally {
       setLoading(false);
     }
   };
@@ -460,7 +277,7 @@ const LoginPage = () => {
           <form onSubmit={handleLogin} className="space-y-6">
             {/* Email Input */}
             <div className="group">
-              <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+              <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-3 items-center gap-2">
                 <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
@@ -504,7 +321,7 @@ const LoginPage = () => {
 
             {/* Password Input */}
             <div className="group">
-              <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+              <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-3 items-center gap-2">
                 <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -768,14 +585,14 @@ const LoginPage = () => {
             {/* Stats with Geometric Design */}
             <div className="grid grid-cols-3 gap-6 pt-8">
               {[
-                { value: '100+', label: 'Students'},
-                { value: '10+', label: 'Courses'},
-                { value: '98%', label: 'Satisfied'}
+                { value: '100+', label: 'Students',icon:<Users/>},
+                { value: '10+', label: 'Courses',icon:<BookOpen/>},
+                { value: '98%', label: 'Satisfied',icon:<Smile/>}
               ].map((stat, index) => (
                 <div key={index} className="relative group">
                   <div className="absolute -inset-2 bg-white/10 rounded-2xl transform group-hover:scale-110 transition-transform"></div>
                   <div className="relative text-center p-4 rounded-xl bg-white/5 backdrop-blur-sm border-2 border-white/20">
-                    <div className="text-3xl mb-2">{stat.icon}</div>
+                    <div className="text-3xl mb-2 text-white">{stat.icon}</div>
                     <div className="text-4xl font-black text-white mb-1">{stat.value}</div>
                     <div className="text-blue-100 text-sm font-semibold">{stat.label}</div>
                   </div>
@@ -794,7 +611,7 @@ const LoginPage = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes wave-slow {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }

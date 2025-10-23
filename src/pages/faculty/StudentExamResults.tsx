@@ -141,7 +141,7 @@
 
 
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 // src/pages/student/ExamReview.tsx
 import React, { useEffect, useState } from "react";
 import { useExamResultStore } from "../../store/examResultStore";
@@ -202,7 +202,7 @@ const studentId=params.studentId
           asChild
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
         >
-          <Link to="/faculty/dashboard">
+          <Link to={user?.role==='admin'?"/admin/dashboard":"/faculty/dashboard"}>
             <Home className="w-5 h-5" /> Dashboard
           </Link>
         </Button>

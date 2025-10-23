@@ -4,11 +4,28 @@ import { useAuthStore } from "@/store/authStore";
 import type { User } from "@/store/authStore";
 import pb from "@/services/pocketbase";
 import { useNavigate } from "react-router-dom";
+interface StudentListProps {
+  role: "student" | "faculty";
+}
 
-export default function StudentList({role}) {
-  const { fetchStudents, students, isLoading, error } = useAuthStore();
+export default function StudentList({ role }: StudentListProps) {
+  const { fetchStudents, students, isLoading, error,updateVerificationStatus} = useAuthStore();
   const [editingId, setEditingId] = useState<string | null>(null);
 const navigate=useNavigate()
+
+
+
+
+const handleVerify = async (id: string, status: boolean) => {
+  try {
+    await updateVerificationStatus(id, status);
+    toast.success(status ? "User verified ✅" : "User unverified ❌");
+  } catch {
+    toast.error("Failed to update verification status ❌");
+  }
+};
+
+
   // Load students from store on mount
   useEffect(() => {
     console.log(role);
@@ -16,11 +33,11 @@ const navigate=useNavigate()
     fetchStudents(role).catch(() => toast.error("Failed to fetch students ❌"));
     console.log("STUDENTS",students);
     
-  }, [role,fetchStudents]);
+  }, [role, fetchStudents, students]);
 
 const handleChange = (id: string, field: keyof User, value: string) => {
   useAuthStore.setState((state) => ({
-    students: state.students.map((s) =>
+    students: state.students?.map((s) =>
       s.id === id ? { ...s, [field]: value } : s
     ),
   }));
@@ -163,12 +180,18 @@ const handleChange = (id: string, field: keyof User, value: string) => {
                     <span className="text-gray-400 italic">No photo</span>
                   )}
                 </td>
+<td className="px-4 py-2 text-center">
+  <button
+  onClick={() => handleVerify(s.id, !s.isVerified)}
+  className={`px-4 py-2 rounded ${
+    s.isVerified ? "bg-green-600" : "bg-blue-600"
+  } text-white`}
+>
+  {s.isVerified ? "Verified" : "Verify"}
+</button>
 
-                <td className="px-4 py-2">
-                
-               <span className="text-gray-400 italic">{s.verified}</span>
-                  
-                </td>
+</td>
+
 
                 <td className="px-4 py-2 text-center flex gap-2 justify-center">
                   {editingId === s.id ? (

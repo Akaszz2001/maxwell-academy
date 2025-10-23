@@ -1,260 +1,38 @@
-// // src/pages/AddQuestions.tsx
-// import { useState,useEffect } from "react";
-// import { useParams } from "react-router-dom";
-// import { useQuestionStore } from "../../store/questionStore";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-// export default function AddQuestions() {
-//   const { examId } = useParams<{ examId: string }>();
-//   const { addBulkQuestions, isLoading } = useQuestionStore();
-
-//   const [activeTab, setActiveTab] = useState<"image" | "csv" | "xlsx" | null>(null);
-//   const [imageFiles, setImageFiles] = useState<File[]>([]);
-//   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
-//   const [csvFile, setCsvFile] = useState<File | null>(null);
-//   const [xlsxFile, setXlsxFile] = useState<File | null>(null);
-
-
-//   const makeUniqueFile = (file: File) => {
-//     const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
-//     return new File([file], uniqueName, { type: file.type });
-//   };
-  
-// // ✅ Handle paste (Ctrl+V to paste images)
-// useEffect(() => {
-//     const handlePaste = (e: ClipboardEvent) => {
-//       if (!e.clipboardData) return;
-//       const items = e.clipboardData.items;
-//       for (let i = 0; i < items.length; i++) {
-//         const item = items[i];
-//         if (item.type.indexOf("image") !== -1) {
-//           const file = item.getAsFile();
-//           if (file) {
-//             const uniqueFile = makeUniqueFile(file);
-//             setImageFiles((prev) => [...prev, uniqueFile]);
-//           }
-          
-//         }
-//       }
-//     };
-  
-//     window.addEventListener("paste", handlePaste);
-//     return () => window.removeEventListener("paste", handlePaste);
-//   }, []);
-  
- 
-//   // ✅ Handle drag & drop image upload
-//   const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
-//     e.preventDefault();
-//     const files = Array.from(e.dataTransfer.files);
-//     setImageFiles((prev) => [...prev, ...files]);
-//   };
-
-//   // ✅ Save image questions
-//   const handleSaveImages = async () => {
-//     console.log("EXAM",examId);
-    
-//     if (!examId) return;
-//     const newQuestions = imageFiles.map((file) => ({
-//       type: "image",
-//       imageFile: file,
-//       answer: answers[file.name]?.toLowerCase(),
-//     }));
-//     await addBulkQuestions(examId, newQuestions);
-//     setImageFiles([]);
-//     setAnswers({});
-//   };
-
-//   // ✅ Save CSV
-//   const handleSaveCSV = async () => {
-//     if (!examId || !csvFile) return;
-//     const text = await csvFile.text();
-//     const rows = text.split("\n").slice(1); // skip header
-//     const newQuestions = rows
-//       .map((row) => {
-//         const [q, a, b, c, d, ans] = row.split(",");
-//         return {
-//           type: "text",
-//           questionText: q,
-//           optionA: a,
-//           optionB: b,
-//           optionC: c,
-//           optionD: d,
-//           answer: ans?.trim().toLowerCase(),
-//         };
-//       })
-//       .filter((q) => q.questionText);
-//       console.log("ADD QUESTION JSX",newQuestions);
-      
-//     await addBulkQuestions(examId, newQuestions);
-//     setCsvFile(null);
-//   };
-
-//   // ✅ Save XLSX (we’ll parse via SheetJS or similar lib)
-//   const handleSaveXLSX = async () => {
-//     if (!examId || !xlsxFile) return;
-
-//     const XLSX = await import("xlsx");
-//     const data = await xlsxFile.arrayBuffer();
-//     const workbook = XLSX.read(data);
-//     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-//     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//     const rows: any[] = XLSX.utils.sheet_to_json(sheet);
-
-//     const newQuestions = rows.map((row) => ({
-//       type: "text",
-//       questionText: row.questionText,
-//       optionA: row["optionA"],
-//       optionB: row["optionB"],
-//       optionC: row["optionC"],
-//       optionD: row["optionD"],
-//       answer: row.answer?.toString().toLowerCase(),
-//     }));
-
-//     console.log(newQuestions);
-    
-//     await addBulkQuestions(examId, newQuestions);
-//     setXlsxFile(null);
-//   };
-
-//   return (
-//     <div className="p-6 max-w-4xl mx-auto">
-//       <h1 className="text-2xl font-bold mb-6">Add Questions</h1>
-
-//       {/* Buttons */}
-//       <div className="flex gap-4 mb-6">
-//         <button
-//           onClick={() => setActiveTab("image")}
-//           className={`px-4 py-2 rounded-lg ${activeTab === "image" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-//         >
-//           Upload Images
-//         </button>
-//         <button
-//           onClick={() => setActiveTab("csv")}
-//           className={`px-4 py-2 rounded-lg ${activeTab === "csv" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-//         >
-//           Upload CSV
-//         </button>
-//         <button
-//           onClick={() => setActiveTab("xlsx")}
-//           className={`px-4 py-2 rounded-lg ${activeTab === "xlsx" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-//         >
-//           Upload XLSX
-//         </button>
-//       </div>
-
-//       {/* IMAGE UPLOAD */}
-//       {activeTab === "image" && (
-//         <div>
-//           <div
-//             onDrop={handleImageDrop}
-//             onDragOver={(e) => e.preventDefault()}
-//             className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center"
-//           >
-//             Drag & Drop images here or click to select
-//             <input
-//               type="file"
-//               multiple
-//               accept="image/*"
-//               className="hidden"
-//               onChange={(e) => {
-//                 if (e.target.files) {
-//                     const uniqueFiles = Array.from(e.target.files).map((f) => makeUniqueFile(f));
-//                     setImageFiles([...imageFiles, ...uniqueFiles]);
-//                   }
-//               }}
-//             />
-//           </div>
-
-//           <div className="mt-4 space-y-4">
-//             {imageFiles.map((file) => (
-//               <div key={file.name} className="flex items-center gap-4 p-2 border rounded">
-//                 <span className="flex-1">{file.name}</span>
-//                 <input
-//                   type="text"
-//                   placeholder="Answer (a/b/c/d)"
-//                   className="border px-2 py-1 rounded"
-//                   value={answers[file.name] || ""}
-//                   onChange={(e) =>
-//                     setAnswers((prev) => ({ ...prev, [file.name]: e.target.value }))
-//                   }
-//                 />
-//               </div>
-//             ))}
-//           </div>
-
-//           <button
-//             onClick={handleSaveImages}
-//             disabled={isLoading}
-//             className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg"
-//           >
-//             {isLoading ? "Saving..." : "Save Image Questions"}
-//           </button>
-//         </div>
-//       )}
-
-//       {/* CSV UPLOAD */}
-//       {activeTab === "csv" && (
-//         <div>
-//           <input
-//             type="file"
-//             accept=".csv"
-//             onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
-//           />
-//           <button
-//             onClick={handleSaveCSV}
-//             disabled={!csvFile || isLoading}
-//             className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg"
-//           >
-//             {isLoading ? "Saving..." : "Save CSV Questions"}
-//           </button>
-//         </div>
-//       )}
-
-//       {/* XLSX UPLOAD */}
-//       {activeTab === "xlsx" && (
-//         <div>
-//           <input
-//             type="file"
-//             accept=".xlsx"
-//             onChange={(e) => setXlsxFile(e.target.files?.[0] || null)}
-//           />
-//           <button
-//             onClick={handleSaveXLSX}
-//             disabled={!xlsxFile || isLoading}
-//             className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg"
-//           >
-//             {isLoading ? "Saving..." : "Save XLSX Questions"}
-//           </button>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-
-
-// src/pages/AddQuestions.tsx
-// src/pages/AddQuestions.tsx
-// src/pages/AddQuestions.tsx
 // import { useState, useEffect } from "react";
-// import { useParams, useNavigate } from "react-router-dom";
+// import { useParams, useNavigate, useLocation } from "react-router-dom";
 // import { useQuestionStore } from "../../store/questionStore";
+// import { ArrowLeft, FileText, ImageIcon, FileSpreadsheet } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+// import { toast } from "react-toastify";
+// import { useAuthStore } from "@/store/authStore";
 
 // export default function AddQuestions() {
 //   const { examId } = useParams<{ examId: string }>();
 //   const { addBulkQuestions, isLoading } = useQuestionStore();
 //   const navigate = useNavigate();
+//   const {user}=useAuthStore()
+// const location = useLocation()
+// const {subject,topic,classs}=location.state || {}
+// console.log(subject,topic,classs);
 
 //   const [activeTab, setActiveTab] = useState<"image" | "csv" | "xlsx" | null>(
 //     null
 //   );
 //   const [imageFiles, setImageFiles] = useState<File[]>([]);
 //   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+//   const [subjects, setSubjects] = useState<{ [key: string]: string }>({});
 //   const [csvFile, setCsvFile] = useState<File | null>(null);
 //   const [csvPreview, setCsvPreview] = useState<string[][]>([]);
 //   const [xlsxFile, setXlsxFile] = useState<File | null>(null);
 //   const [xlsxPreview, setXlsxPreview] = useState<any[]>([]);
 
+
+//   const [sharedSubject, setSharedSubject] = useState("");
+//   const [sharedTopic, setSharedTopic] = useState("");
+//   const [sharedClass, setSharedClass] = useState("");
 //   const makeUniqueFile = (file: File) => {
 //     const uniqueName = `${Date.now()}-${Math.random()
 //       .toString(36)
@@ -262,7 +40,17 @@
 //     return new File([file], uniqueName, { type: file.type });
 //   };
 
-//   // ✅ Handle paste
+// useEffect(() => {
+//   if (subject && topic&& classs) {
+  
+//     setSharedSubject(subject);
+//     setSharedTopic(topic);
+//     setSharedClass(classs)
+//   }
+// }, [subject, topic,classs]);
+
+
+
 //   useEffect(() => {
 //     const handlePaste = (e: ClipboardEvent) => {
 //       if (!e.clipboardData) return;
@@ -278,32 +66,81 @@
 //         }
 //       }
 //     };
-
 //     window.addEventListener("paste", handlePaste);
 //     return () => window.removeEventListener("paste", handlePaste);
 //   }, []);
 
-//   // ✅ Handle drag & drop image upload
 //   const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
 //     e.preventDefault();
 //     const files = Array.from(e.dataTransfer.files);
 //     setImageFiles((prev) => [...prev, ...files]);
 //   };
 
-//   // ✅ Save image questions
+//   // const handleSaveImages = async () => {
+//   //   if (!examId) return;
+//   //   const newQuestions = imageFiles.map((file) => ({
+//   //     type: "image",
+//   //     imageFile: file,
+//   //     answer: answers[file.name]?.toLowerCase(),
+//   //     subject:subjects[file.name]?.toLowerCase()
+//   //   }));
+//   //   await addBulkQuestions(examId, newQuestions);
+//   //   setImageFiles([]);
+//   //   setAnswers({});
+//   // };
+
+
 //   const handleSaveImages = async () => {
-//     if (!examId) return;
-//     const newQuestions = imageFiles.map((file) => ({
-//       type: "image",
-//       imageFile: file,
-//       answer: answers[file.name]?.toLowerCase(),
-//     }));
-//     await addBulkQuestions(examId, newQuestions);
-//     setImageFiles([]);
-//     setAnswers({});
+//     try {
+//       // if (user?.role !== "faculty") {
+//       //   toast.error("You are not authorized to perform this action.");
+//       //   return;
+//       // }
+  
+//       if (imageFiles.length === 0) {
+//         toast.error("Please upload at least one image before saving.");
+//         return;
+//       }
+  
+//       if (!sharedSubject || !sharedTopic || !sharedClass) {
+//         toast.error("Please provide Subject, Topic, and Class.");
+//         return;
+//       }
+  
+//       // Validate answers
+//       const missingAnswers = imageFiles.filter((file) => !answers[file.name]?.trim());
+//       if (missingAnswers.length > 0) {
+//         toast.error("Please provide answers for all uploaded images.");
+//         return;
+//       }
+  
+//       const newQuestions = imageFiles.map((file) => ({
+//         type: "image",
+//         imageFile: file,
+//         answer: answers[file.name].toLowerCase(),
+//         subject: sharedSubject.toLowerCase(),
+//         topic: sharedTopic.toLowerCase(),
+//         classs: sharedClass.toLowerCase(),
+//       }));
+  
+//       await addBulkQuestions(examId, newQuestions);
+  
+//       // Reset state after success
+//       setImageFiles([]);
+//       setAnswers({});
+//       // setSharedSubject("");
+//       // setSharedTopic("");
+//       // setSharedClass("");
+//       toast.success("Image questions saved successfully!");
+//     } catch (error) {
+//       console.error("Error saving image questions:", error?.response?.data?.message);
+//       alert("Something went wrong while saving. Please try again.");
+//     }
 //   };
 
-//   // ✅ Handle CSV change (preview + store)
+
+
+
 //   const handleCsvChange = async (file: File) => {
 //     setCsvFile(file);
 //     const text = await file.text();
@@ -311,14 +148,14 @@
 //     setCsvPreview(rows);
 //   };
 
-//   // ✅ Save CSV
 //   const handleSaveCSV = async () => {
+//     console.log("her");
+    
 //     if (!examId || !csvFile) return;
-
 //     const newQuestions = csvPreview
-//       .slice(1) // skip header
+//       .slice(1)
 //       .map((row) => {
-//         const [q, a, b, c, d, ans] = row;
+//         const [q, a, b, c, d, ans,subject,topic,classs] = row;
 //         return {
 //           type: "text",
 //           questionText: q,
@@ -326,20 +163,28 @@
 //           optionB: b,
 //           optionC: c,
 //           optionD: d,
+//           subject:subject?.trim().toLowerCase(),
 //           answer: ans?.trim().toLowerCase(),
+//           topic: topic?.trim().toLowerCase(),
+//           classs: classs?.trim().toLowerCase()
 //         };
 //       })
 //       .filter((q) => q.questionText);
-
-//     await addBulkQuestions(examId, newQuestions);
+//       console.log("upto");
+      
+//  try{  
+//    await addBulkQuestions(examId, newQuestions);
 //     setCsvFile(null);
 //     setCsvPreview([]);
+//     toast.success("Questions addedd sucessfully")
+//   }catch(err){
+//       console.log(err);
+      
+//     }
 //   };
 
-//   // ✅ Handle XLSX change (preview + store)
 //   const handleXlsxChange = async (file: File) => {
 //     setXlsxFile(file);
-
 //     const XLSX = await import("xlsx");
 //     const data = await file.arrayBuffer();
 //     const workbook = XLSX.read(data);
@@ -348,10 +193,8 @@
 //     setXlsxPreview(rows);
 //   };
 
-//   // ✅ Save XLSX
 //   const handleSaveXLSX = async () => {
 //     if (!examId || !xlsxFile) return;
-
 //     const newQuestions = xlsxPreview.map((row) => ({
 //       type: "text",
 //       questionText: row.questionText,
@@ -359,37 +202,71 @@
 //       optionB: row["optionB"],
 //       optionC: row["optionC"],
 //       optionD: row["optionD"],
+//       subject:row.subject?.toString().toLowerCase(),
 //       answer: row.answer?.toString().toLowerCase(),
+//       topic: row.topic?.toString().toLowerCase(),
+//       classs: row.classs?.toString().toLowerCase(),
 //     }));
-
-//     await addBulkQuestions(examId, newQuestions);
+//     try{
+//  await addBulkQuestions(examId, newQuestions);
 //     setXlsxFile(null);
 //     setXlsxPreview([]);
+//     toast.success("Questions addedd successfully")
+//     }catch(err){
+// console.log(err);
+
+//     }
+   
 //   };
 
 //   return (
-//     <div className="p-6 max-w-5xl mx-auto">
-//       <h1 className="text-3xl font-bold mb-8 text-center">Add Questions</h1>
+//     <div className="p-6 max-w-7xl mx-auto">
+//       {/* Top Bar */}
+//       <div className="flex justify-between items-center mb-6">
+//         <Button
+//           onClick={() => navigate(-1)}
+//           className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"
+//         >
+//           <ArrowLeft className="w-5 h-5" /> Back
+//         </Button>
+//         <h1 className="text-3xl font-bold text-center flex-1 text-gray-800">
+//           Add Questions
+//         </h1>
+//         <div className="w-24"></div>
+//       </div>
 
-//       {/* Buttons */}
+//       {/* Tabs */}
 //       <div className="flex flex-wrap justify-center gap-4 mb-8">
-//         {["image", "csv", "xlsx"].map((tab) => (
-//           <button
-//             key={tab}
-//             onClick={() => setActiveTab(tab as any)}
-//             className={`px-6 py-2 rounded-lg font-semibold shadow-md transition ${
-//               activeTab === tab
-//                 ? "bg-blue-600 text-white"
-//                 : "bg-gray-100 hover:bg-gray-200"
-//             }`}
-//           >
-//             {tab === "image"
-//               ? "Upload Images"
-//               : tab === "csv"
-//               ? "Upload CSV"
-//               : "Upload XLSX"}
-//           </button>
-//         ))}
+//         <button
+//           onClick={() => setActiveTab("image")}
+//           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-md transition ${
+//             activeTab === "image"
+//               ? "bg-blue-600 text-white"
+//               : "bg-gray-100 hover:bg-gray-200"
+//           }`}
+//         >
+//           <ImageIcon className="w-5 h-5" /> Upload Images
+//         </button>
+//         <button
+//           onClick={() => setActiveTab("csv")}
+//           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-md transition ${
+//             activeTab === "csv"
+//               ? "bg-blue-600 text-white"
+//               : "bg-gray-100 hover:bg-gray-200"
+//           }`}
+//         >
+//           <FileText className="w-5 h-5" /> Upload CSV
+//         </button>
+//         <button
+//           onClick={() => setActiveTab("xlsx")}
+//           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-md transition ${
+//             activeTab === "xlsx"
+//               ? "bg-blue-600 text-white"
+//               : "bg-gray-100 hover:bg-gray-200"
+//           }`}
+//         >
+//           <FileSpreadsheet className="w-5 h-5" /> Upload XLSX
+//         </button>
 //       </div>
 
 //       {/* IMAGE UPLOAD */}
@@ -416,14 +293,37 @@
 //               }}
 //             />
 //           </div>
-
-//           {/* Image Previews */}
+//       {activeTab === "image" && imageFiles.length > 0 && (
+//   <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+//     <input
+//       type="text"
+//       placeholder="Subject"
+//       className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+//       value={sharedSubject}
+//       onChange={(e) => setSharedSubject(e.target.value)}
+//     />
+//     <input
+//       type="text"
+//       placeholder="Topic"
+//       className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+//       value={sharedTopic}
+//       onChange={(e) => setSharedTopic(e.target.value)}
+//     />
+//     <input
+//       type="text"
+//       placeholder="Class"
+//       className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+//       value={sharedClass}
+//       onChange={(e) => setSharedClass(e.target.value)}
+//     />
+//   </div>
+// )}
 //           {imageFiles.length > 0 && (
 //             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 //               {imageFiles.map((file) => (
 //                 <div
 //                   key={file.name}
-//                   className="p-4 border rounded-lg shadow-sm bg-white"
+//                   className="p-4 border rounded-lg shadow-sm bg-white flex flex-col"
 //                 >
 //                   <img
 //                     src={URL.createObjectURL(file)}
@@ -443,17 +343,29 @@
 //                       }))
 //                     }
 //                   />
+//                   {/* <input
+//                     type="text"
+//                     placeholder="Subject"
+//                     className="border px-2 py-1 rounded w-full"
+//                     value={subjects[file.name] || ""}
+//                     onChange={(e) =>
+//                       setSubjects((prev) => ({
+//                         ...prev,
+//                         [file.name]: e.target.value,
+//                       }))
+//                     }
+//                   /> */}
 //                 </div>
 //               ))}
 //             </div>
 //           )}
 
 //           {imageFiles.length > 0 && (
-//             <div className="text-center">
+//             <div className="text-center mt-6">
 //               <button
 //                 onClick={handleSaveImages}
 //                 disabled={isLoading}
-//                 className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold"
+//                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold"
 //               >
 //                 {isLoading ? "Saving..." : "Save Image Questions"}
 //               </button>
@@ -468,14 +380,13 @@
 //           <input
 //             type="file"
 //             accept=".csv"
+//             className="p-2 border rounded-lg"
 //             onChange={(e) => {
 //               if (e.target.files?.[0]) handleCsvChange(e.target.files[0]);
 //             }}
 //           />
-
-//           {/* CSV Preview */}
 //           {csvPreview.length > 0 && (
-//             <div className="overflow-x-auto border rounded-lg">
+//             <div className="overflow-x-auto border rounded-lg shadow-sm">
 //               <table className="min-w-full text-sm">
 //                 <thead className="bg-gray-100">
 //                   <tr>
@@ -488,7 +399,7 @@
 //                 </thead>
 //                 <tbody>
 //                   {csvPreview.slice(1).map((row, i) => (
-//                     <tr key={i}>
+//                     <tr key={i} className="hover:bg-gray-50 transition-colors">
 //                       {row.map((cell, j) => (
 //                         <td key={j} className="px-3 py-2 border">
 //                           {cell}
@@ -500,7 +411,6 @@
 //               </table>
 //             </div>
 //           )}
-
 //           <button
 //             onClick={handleSaveCSV}
 //             disabled={!csvFile || isLoading}
@@ -517,14 +427,13 @@
 //           <input
 //             type="file"
 //             accept=".xlsx"
+//             className="p-2 border rounded-lg"
 //             onChange={(e) => {
 //               if (e.target.files?.[0]) handleXlsxChange(e.target.files[0]);
 //             }}
 //           />
-
-//           {/* XLSX Preview */}
 //           {xlsxPreview.length > 0 && (
-//             <div className="overflow-x-auto border rounded-lg">
+//             <div className="overflow-x-auto border rounded-lg shadow-sm">
 //               <table className="min-w-full text-sm">
 //                 <thead className="bg-gray-100">
 //                   <tr>
@@ -537,7 +446,7 @@
 //                 </thead>
 //                 <tbody>
 //                   {xlsxPreview.map((row, i) => (
-//                     <tr key={i}>
+//                     <tr key={i} className="hover:bg-gray-50 transition-colors">
 //                       {Object.values(row).map((cell, j) => (
 //                         <td key={j} className="px-3 py-2 border">
 //                           {cell as string}
@@ -549,7 +458,6 @@
 //               </table>
 //             </div>
 //           )}
-
 //           <button
 //             onClick={handleSaveXLSX}
 //             disabled={!xlsxFile || isLoading}
@@ -564,7 +472,12 @@
 //       {activeTab && (
 //         <div className="text-center mt-8">
 //           <button
-//             onClick={() => navigate("/faculty/dashboard")}
+//           onClick={() => 
+//   user?.role === "faculty" 
+//     ? navigate("/faculty/dashboard") 
+//     : navigate("/admin/dashboard")
+// }
+
 //             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-semibold"
 //           >
 //             Finish
@@ -574,146 +487,746 @@
 //     </div>
 //   );
 // }
-import { useState, useEffect } from "react";
+
+
+
+
+
+// import { useState, useEffect } from "react";
+// import { useParams, useNavigate, useLocation } from "react-router-dom";
+// import { useQuestionStore } from "../../store/questionStore";
+// import { ArrowLeft, FileText, ImageIcon, FileSpreadsheet } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+// import { toast } from "react-toastify";
+// import { useAuthStore } from "@/store/authStore";
+// import { initializeDatabase } from "@/services/indexedDB";
+
+
+// export default function AddQuestions() {
+
+//   const { examId } = useParams<{ examId: string }>();
+//   const { addBulkQuestions, isLoading } = useQuestionStore();
+//   const navigate = useNavigate();
+//   const {user}=useAuthStore()
+// const location = useLocation()
+// const {subject,topic,classs}=location.state || {}
+// console.log(subject,topic,classs);
+
+//   const [activeTab, setActiveTab] = useState<"image" | "csv" | "xlsx" | null>(
+//     null
+//   );
+//   const [imageFiles, setImageFiles] = useState<File[]>([]);
+//   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+//   const [subjects, setSubjects] = useState<{ [key: string]: string }>({});
+//   const [csvFile, setCsvFile] = useState<File | null>(null);
+//   const [csvPreview, setCsvPreview] = useState<string[][]>([]);
+//   const [xlsxFile, setXlsxFile] = useState<File | null>(null);
+//   const [xlsxPreview, setXlsxPreview] = useState<any[]>([]);
+
+
+//   const [sharedSubject, setSharedSubject] = useState("");
+//   const [sharedTopic, setSharedTopic] = useState("");
+//   const [sharedClass, setSharedClass] = useState("");
+//   const makeUniqueFile = (file: File) => {
+//     const uniqueName = `${Date.now()}-${Math.random()
+//       .toString(36)
+//       .slice(2)}-${file.name}`;
+//     return new File([file], uniqueName, { type: file.type });
+//   };
+
+
+// useEffect(()=>{
+// const init=async()=>{
+// await initializeDatabase()
+// }
+
+// init()
+// },[initializeDatabase])
+
+
+
+// useEffect(() => {
+//   if (subject && topic&& classs) {
+  
+//     setSharedSubject(subject);
+//     setSharedTopic(topic);
+//     setSharedClass(classs)
+//   }
+// }, [subject, topic,classs]);
+
+
+
+//   useEffect(() => {
+//     const handlePaste =async (e: ClipboardEvent) => {
+//       if (!e.clipboardData) return;
+//       const items = e.clipboardData.items;
+//       for (let i = 0; i < items.length; i++) {
+//         const item = items[i];
+//         if (item.type.indexOf("image") !== -1) {
+//           const file = item.getAsFile();
+//           if (file) {
+//             const uniqueFile = makeUniqueFile(file);
+// await 
+//             setImageFiles((prev) => [...prev, uniqueFile]);
+//           }
+//         }
+//       }
+//     };
+//     window.addEventListener("paste", handlePaste);
+//     return () => window.removeEventListener("paste", handlePaste);
+//   }, []);
+
+//   const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
+//     e.preventDefault();
+//     const files = Array.from(e.dataTransfer.files);
+//     setImageFiles((prev) => [...prev, ...files]);
+//   };
+
+//   // const handleSaveImages = async () => {
+//   //   if (!examId) return;
+//   //   const newQuestions = imageFiles.map((file) => ({
+//   //     type: "image",
+//   //     imageFile: file,
+//   //     answer: answers[file.name]?.toLowerCase(),
+//   //     subject:subjects[file.name]?.toLowerCase()
+//   //   }));
+//   //   await addBulkQuestions(examId, newQuestions);
+//   //   setImageFiles([]);
+//   //   setAnswers({});
+//   // };
+
+
+//   const handleSaveImages = async () => {
+//     try {
+//       // if (user?.role !== "faculty") {
+//       //   toast.error("You are not authorized to perform this action.");
+//       //   return;
+//       // }
+  
+//       if (imageFiles.length === 0) {
+//         toast.error("Please upload at least one image before saving.");
+//         return;
+//       }
+  
+//       if (!sharedSubject || !sharedTopic || !sharedClass) {
+//         toast.error("Please provide Subject, Topic, and Class.");
+//         return;
+//       }
+  
+//       // Validate answers
+//       const missingAnswers = imageFiles.filter((file) => !answers[file.name]?.trim());
+//       if (missingAnswers.length > 0) {
+//         toast.error("Please provide answers for all uploaded images.");
+//         return;
+//       }
+  
+//       const newQuestions = imageFiles.map((file) => ({
+//         type: "image",
+//         imageFile: file,
+//         answer: answers[file.name].toLowerCase(),
+//         subject: sharedSubject.toLowerCase(),
+//         topic: sharedTopic.toLowerCase(),
+//         classs: sharedClass.toLowerCase(),
+//       }));
+  
+//       await addBulkQuestions(examId, newQuestions);
+  
+//       // Reset state after success
+//       setImageFiles([]);
+//       setAnswers({});
+//       // setSharedSubject("");
+//       // setSharedTopic("");
+//       // setSharedClass("");
+//       toast.success("Image questions saved successfully!");
+//     } catch (error) {
+//       console.error("Error saving image questions:", error?.response?.data?.message);
+//       alert("Something went wrong while saving. Please try again.");
+//     }
+//   };
+
+
+
+
+//   const handleCsvChange = async (file: File) => {
+//     setCsvFile(file);
+//     const text = await file.text();
+//     const rows = text.split("\n").map((r) => r.split(","));
+//     setCsvPreview(rows);
+//   };
+
+//   const handleSaveCSV = async () => {
+//     console.log("her");
+    
+//     if (!examId || !csvFile) return;
+//     const newQuestions = csvPreview
+//       .slice(1)
+//       .map((row) => {
+//         const [q, a, b, c, d, ans,subject,topic,classs] = row;
+//         return {
+//           type: "text",
+//           questionText: q,
+//           optionA: a,
+//           optionB: b,
+//           optionC: c,
+//           optionD: d,
+//           subject:subject?.trim().toLowerCase(),
+//           answer: ans?.trim().toLowerCase(),
+//           topic: topic?.trim().toLowerCase(),
+//           classs: classs?.trim().toLowerCase()
+//         };
+//       })
+//       .filter((q) => q.questionText);
+//       console.log("upto");
+      
+//  try{  
+//    await addBulkQuestions(examId, newQuestions);
+//     setCsvFile(null);
+//     setCsvPreview([]);
+//     toast.success("Questions addedd sucessfully")
+//   }catch(err){
+//       console.log(err);
+      
+//     }
+//   };
+
+//   const handleXlsxChange = async (file: File) => {
+//     setXlsxFile(file);
+//     const XLSX = await import("xlsx");
+//     const data = await file.arrayBuffer();
+//     const workbook = XLSX.read(data);
+//     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+//     const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+//     setXlsxPreview(rows);
+//   };
+
+//   const handleSaveXLSX = async () => {
+//     if (!examId || !xlsxFile) return;
+//     const newQuestions = xlsxPreview.map((row) => ({
+//       type: "text",
+//       questionText: row.questionText,
+//       optionA: row["optionA"],
+//       optionB: row["optionB"],
+//       optionC: row["optionC"],
+//       optionD: row["optionD"],
+//       subject:row.subject?.toString().toLowerCase(),
+//       answer: row.answer?.toString().toLowerCase(),
+//       topic: row.topic?.toString().toLowerCase(),
+//       classs: row.classs?.toString().toLowerCase(),
+//     }));
+//     try{
+//  await addBulkQuestions(examId, newQuestions);
+//     setXlsxFile(null);
+//     setXlsxPreview([]);
+//     toast.success("Questions addedd successfully")
+//     }catch(err){
+// console.log(err);
+
+//     }
+   
+//   };
+
+//   return (
+//     <div className="p-6 max-w-7xl mx-auto">
+//       {/* Top Bar */}
+//       <div className="flex justify-between items-center mb-6">
+//         <Button
+//           onClick={() => navigate(-1)}
+//           className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"
+//         >
+//           <ArrowLeft className="w-5 h-5" /> Back
+//         </Button>
+//         <h1 className="text-3xl font-bold text-center flex-1 text-gray-800">
+//           Add Questions
+//         </h1>
+//         <div className="w-24"></div>
+//       </div>
+
+//       {/* Tabs */}
+//       <div className="flex flex-wrap justify-center gap-4 mb-8">
+//         <button
+//           onClick={() => setActiveTab("image")}
+//           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-md transition ${
+//             activeTab === "image"
+//               ? "bg-blue-600 text-white"
+//               : "bg-gray-100 hover:bg-gray-200"
+//           }`}
+//         >
+//           <ImageIcon className="w-5 h-5" /> Upload Images
+//         </button>
+//         <button
+//           onClick={() => setActiveTab("csv")}
+//           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-md transition ${
+//             activeTab === "csv"
+//               ? "bg-blue-600 text-white"
+//               : "bg-gray-100 hover:bg-gray-200"
+//           }`}
+//         >
+//           <FileText className="w-5 h-5" /> Upload CSV
+//         </button>
+//         <button
+//           onClick={() => setActiveTab("xlsx")}
+//           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-md transition ${
+//             activeTab === "xlsx"
+//               ? "bg-blue-600 text-white"
+//               : "bg-gray-100 hover:bg-gray-200"
+//           }`}
+//         >
+//           <FileSpreadsheet className="w-5 h-5" /> Upload XLSX
+//         </button>
+//       </div>
+
+//       {/* IMAGE UPLOAD */}
+//       {activeTab === "image" && (
+//         <div>
+//           <div
+//             onDrop={handleImageDrop}
+//             onDragOver={(e) => e.preventDefault()}
+//             className="border-2 border-dashed border-gray-400 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50"
+//           >
+//             Drag & Drop images here or paste (Ctrl+V)
+//             <input
+//               type="file"
+//               multiple
+//               accept="image/*"
+//               className="hidden"
+//               onChange={(e) => {
+//                 if (e.target.files) {
+//                   const uniqueFiles = Array.from(e.target.files).map((f) =>
+//                     makeUniqueFile(f)
+//                   );
+//                   setImageFiles([...imageFiles, ...uniqueFiles]);
+//                 }
+//               }}
+//             />
+//           </div>
+//       {activeTab === "image" && imageFiles.length > 0 && (
+//   <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+//     <input
+//       type="text"
+//       placeholder="Subject"
+//       className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+//       value={sharedSubject}
+//       onChange={(e) => setSharedSubject(e.target.value)}
+//     />
+//     <input
+//       type="text"
+//       placeholder="Topic"
+//       className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+//       value={sharedTopic}
+//       onChange={(e) => setSharedTopic(e.target.value)}
+//     />
+//     <input
+//       type="text"
+//       placeholder="Class"
+//       className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+//       value={sharedClass}
+//       onChange={(e) => setSharedClass(e.target.value)}
+//     />
+//   </div>
+// )}
+//           {imageFiles.length > 0 && (
+//             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+//               {imageFiles.map((file) => (
+//                 <div
+//                   key={file.name}
+//                   className="p-4 border rounded-lg shadow-sm bg-white flex flex-col"
+//                 >
+//                   <img
+//                     src={URL.createObjectURL(file)}
+//                     alt={file.name}
+//                     className="w-full h-40 object-contain rounded mb-3"
+//                   />
+//                   <p className="text-sm truncate mb-2">{file.name}</p>
+//                   <input
+//                     type="text"
+//                     placeholder="Answer (a/b/c/d)"
+//                     className="border px-2 py-1 rounded w-full"
+//                     value={answers[file.name] || ""}
+//                     onChange={(e) =>
+//                       setAnswers((prev) => ({
+//                         ...prev,
+//                         [file.name]: e.target.value,
+//                       }))
+//                     }
+//                   />
+//                   {/* <input
+//                     type="text"
+//                     placeholder="Subject"
+//                     className="border px-2 py-1 rounded w-full"
+//                     value={subjects[file.name] || ""}
+//                     onChange={(e) =>
+//                       setSubjects((prev) => ({
+//                         ...prev,
+//                         [file.name]: e.target.value,
+//                       }))
+//                     }
+//                   /> */}
+//                 </div>
+//               ))}
+//             </div>
+//           )}
+
+//           {imageFiles.length > 0 && (
+//             <div className="text-center mt-6">
+//               <button
+//                 onClick={handleSaveImages}
+//                 disabled={isLoading}
+//                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold"
+//               >
+//                 {isLoading ? "Saving..." : "Save Image Questions"}
+//               </button>
+//             </div>
+//           )}
+//         </div>
+//       )}
+
+//       {/* CSV UPLOAD */}
+//       {activeTab === "csv" && (
+//         <div className="space-y-4">
+//           <input
+//             type="file"
+//             accept=".csv"
+//             className="p-2 border rounded-lg"
+//             onChange={(e) => {
+//               if (e.target.files?.[0]) handleCsvChange(e.target.files[0]);
+//             }}
+//           />
+//           {csvPreview.length > 0 && (
+//             <div className="overflow-x-auto border rounded-lg shadow-sm">
+//               <table className="min-w-full text-sm">
+//                 <thead className="bg-gray-100">
+//                   <tr>
+//                     {csvPreview[0].map((header, idx) => (
+//                       <th key={idx} className="px-3 py-2 border">
+//                         {header}
+//                       </th>
+//                     ))}
+//                   </tr>
+//                 </thead>
+//                 <tbody>
+//                   {csvPreview.slice(1).map((row, i) => (
+//                     <tr key={i} className="hover:bg-gray-50 transition-colors">
+//                       {row.map((cell, j) => (
+//                         <td key={j} className="px-3 py-2 border">
+//                           {cell}
+//                         </td>
+//                       ))}
+//                     </tr>
+//                   ))}
+//                 </tbody>
+//               </table>
+//             </div>
+//           )}
+//           <button
+//             onClick={handleSaveCSV}
+//             disabled={!csvFile || isLoading}
+//             className="mt-4 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold"
+//           >
+//             {isLoading ? "Saving..." : "Save CSV Questions"}
+//           </button>
+//         </div>
+//       )}
+
+//       {/* XLSX UPLOAD */}
+//       {activeTab === "xlsx" && (
+//         <div className="space-y-4">
+//           <input
+//             type="file"
+//             accept=".xlsx"
+//             className="p-2 border rounded-lg"
+//             onChange={(e) => {
+//               if (e.target.files?.[0]) handleXlsxChange(e.target.files[0]);
+//             }}
+//           />
+//           {xlsxPreview.length > 0 && (
+//             <div className="overflow-x-auto border rounded-lg shadow-sm">
+//               <table className="min-w-full text-sm">
+//                 <thead className="bg-gray-100">
+//                   <tr>
+//                     {Object.keys(xlsxPreview[0]).map((header, idx) => (
+//                       <th key={idx} className="px-3 py-2 border">
+//                         {header}
+//                       </th>
+//                     ))}
+//                   </tr>
+//                 </thead>
+//                 <tbody>
+//                   {xlsxPreview.map((row, i) => (
+//                     <tr key={i} className="hover:bg-gray-50 transition-colors">
+//                       {Object.values(row).map((cell, j) => (
+//                         <td key={j} className="px-3 py-2 border">
+//                           {cell as string}
+//                         </td>
+//                       ))}
+//                     </tr>
+//                   ))}
+//                 </tbody>
+//               </table>
+//             </div>
+//           )}
+//           <button
+//             onClick={handleSaveXLSX}
+//             disabled={!xlsxFile || isLoading}
+//             className="mt-4 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold"
+//           >
+//             {isLoading ? "Saving..." : "Save XLSX Questions"}
+//           </button>
+//         </div>
+//       )}
+
+//       {/* Finish Button */}
+//       {activeTab && (
+//         <div className="text-center mt-8">
+//           <button
+//           onClick={() => 
+//   user?.role === "faculty" 
+//     ? navigate("/faculty/dashboard") 
+//     : navigate("/admin/dashboard")
+// }
+
+//             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-semibold"
+//           >
+//             Finish
+//           </button>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuestionStore } from "../../store/questionStore";
 import { ArrowLeft, FileText, ImageIcon, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import { useAuthStore } from "@/store/authStore";
+import { get, set, del } from "idb-keyval"; // ✅ IndexedDB import
+
+type SavedImage = {
+  id: string;
+  name: string;
+  dataUrl: string;
+  createdAt: number;
+};
+
+const DB_KEY = "imageQuestionDraft_v4"; // ✅ IndexedDB key
 
 export default function AddQuestions() {
   const { examId } = useParams<{ examId: string }>();
   const { addBulkQuestions, isLoading } = useQuestionStore();
   const navigate = useNavigate();
-  const {user}=useAuthStore()
-const location = useLocation()
-const {subject,topic,classs}=location.state || {}
-console.log(subject,topic,classs);
+  const { user } = useAuthStore();
+  const location = useLocation();
+  const { subject, topic, classs } = location.state || {};
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [activeTab, setActiveTab] = useState<"image" | "csv" | "xlsx" | null>(
-    null
-  );
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [answers, setAnswers] = useState<{ [key: string]: string }>({});
-  const [subjects, setSubjects] = useState<{ [key: string]: string }>({});
+  const [activeTab, setActiveTab] = useState<"image" | "csv" | "xlsx" | null>(null);
+  const [savedImages, setSavedImages] = useState<SavedImage[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [sharedSubject, setSharedSubject] = useState("");
+  const [sharedTopic, setSharedTopic] = useState("");
+  const [sharedClass, setSharedClass] = useState("");
+
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvPreview, setCsvPreview] = useState<string[][]>([]);
   const [xlsxFile, setXlsxFile] = useState<File | null>(null);
   const [xlsxPreview, setXlsxPreview] = useState<any[]>([]);
 
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
 
-  const [sharedSubject, setSharedSubject] = useState("");
-  const [sharedTopic, setSharedTopic] = useState("");
-  const [sharedClass, setSharedClass] = useState("");
-  const makeUniqueFile = (file: File) => {
-    const uniqueName = `${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2)}-${file.name}`;
-    return new File([file], uniqueName, { type: file.type });
+  const dataUrlToFile = (dataUrl: string, filename: string) => {
+    const arr = dataUrl.split(",");
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8 = new Uint8Array(n);
+    while (n--) u8[n] = bstr.charCodeAt(n);
+    return new File([u8], filename, { type: mime });
   };
 
-useEffect(() => {
-  if (subject && topic&& classs) {
-  
-    setSharedSubject(subject);
-    setSharedTopic(topic);
-    setSharedClass(classs)
-  }
-}, [subject, topic,classs]);
-
-
+  const makeUniqueName = (name: string) =>
+    `${Date.now()}-${Math.random().toString(36).slice(2)}-${name}`;
 
   useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      if (!e.clipboardData) return;
-      const items = e.clipboardData.items;
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.type.indexOf("image") !== -1) {
-          const file = item.getAsFile();
-          if (file) {
-            const uniqueFile = makeUniqueFile(file);
-            setImageFiles((prev) => [...prev, uniqueFile]);
-          }
+    if (subject && topic && classs) {
+      setSharedSubject(subject);
+      setSharedTopic(topic);
+      setSharedClass(classs);
+    }
+  }, [subject, topic, classs]);
+
+  // ✅ Restore from IndexedDB
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await get(DB_KEY);
+        if (!saved) return;
+        const parsed = saved as {
+          images: SavedImage[];
+          answers: Record<string, string>;
+          sharedSubject?: string;
+          sharedTopic?: string;
+          sharedClass?: string;
+        };
+        if (parsed.images?.length) {
+          setSavedImages(parsed.images);
+          setAnswers(parsed.answers || {});
+          if (parsed.sharedSubject) setSharedSubject(parsed.sharedSubject);
+          if (parsed.sharedTopic) setSharedTopic(parsed.sharedTopic);
+          if (parsed.sharedClass) setSharedClass(parsed.sharedClass);
+          toast.info("Restored unsaved image questions from IndexedDB.");
         }
+      } catch (err) {
+        console.warn("Failed to restore draft from IndexedDB:", err);
       }
-    };
-    window.addEventListener("paste", handlePaste);
-    return () => window.removeEventListener("paste", handlePaste);
+    })();
   }, []);
 
-  const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  // ✅ Persist to IndexedDB
+  useEffect(() => {
+    (async () => {
+      if (savedImages.length === 0) {
+        await del(DB_KEY);
+        return;
+      }
+      const payload = {
+        images: savedImages,
+        answers,
+        sharedSubject,
+        sharedTopic,
+        sharedClass,
+      };
+      try {
+        await set(DB_KEY, payload);
+      } catch (err) {
+        console.warn("Failed to save draft to IndexedDB:", err);
+      }
+    })();
+  }, [savedImages, answers, sharedSubject, sharedTopic, sharedClass]);
+
+  // Copy-paste handler
+  useEffect(() => {
+    const onPaste = async (e: ClipboardEvent) => {
+      if (!e.clipboardData) return;
+      const items = Array.from(e.clipboardData.items);
+      const imgItems = items.filter((it) => it.kind === "file" && it.type.startsWith("image"));
+      if (imgItems.length === 0) return;
+      const added: SavedImage[] = [];
+      for (const it of imgItems) {
+        const file = it.getAsFile();
+        if (!file) continue;
+        try {
+          const dataUrl = await fileToDataUrl(file);
+          added.push({
+            id: makeUniqueName(file.name),
+            name: file.name,
+            dataUrl,
+            createdAt: Date.now(),
+          });
+        } catch (err) {
+          console.warn("paste -> fileToDataUrl failed", err);
+        }
+      }
+      if (added.length) setSavedImages((s) => [...s, ...added]);
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, []);
+
+  const handleImageDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
-    setImageFiles((prev) => [...prev, ...files]);
+    const files = Array.from(e.dataTransfer.files || []).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) return;
+    const added: SavedImage[] = [];
+    for (const file of files) {
+      const dataUrl = await fileToDataUrl(file);
+      added.push({
+        id: makeUniqueName(file.name),
+        name: file.name,
+        dataUrl,
+        createdAt: Date.now(),
+      });
+    }
+    setSavedImages((s) => [...s, ...added]);
   };
 
-  // const handleSaveImages = async () => {
-  //   if (!examId) return;
-  //   const newQuestions = imageFiles.map((file) => ({
-  //     type: "image",
-  //     imageFile: file,
-  //     answer: answers[file.name]?.toLowerCase(),
-  //     subject:subjects[file.name]?.toLowerCase()
-  //   }));
-  //   await addBulkQuestions(examId, newQuestions);
-  //   setImageFiles([]);
-  //   setAnswers({});
-  // };
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (files.length === 0) return;
+    const added: SavedImage[] = [];
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) continue;
+      const dataUrl = await fileToDataUrl(file);
+      added.push({
+        id: makeUniqueName(file.name),
+        name: file.name,
+        dataUrl,
+        createdAt: Date.now(),
+      });
+    }
+    if (added.length) setSavedImages((s) => [...s, ...added]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
+  const removeImage = (id: string) => {
+    setSavedImages((s) => s.filter((i) => i.id !== id));
+    setAnswers((a) => {
+      const copy = { ...a };
+      delete copy[id];
+      return copy;
+    });
+  };
 
   const handleSaveImages = async () => {
     try {
-      // if (user?.role !== "faculty") {
-      //   toast.error("You are not authorized to perform this action.");
-      //   return;
-      // }
-  
-      if (imageFiles.length === 0) {
+      if (savedImages.length === 0) {
         toast.error("Please upload at least one image before saving.");
         return;
       }
-  
       if (!sharedSubject || !sharedTopic || !sharedClass) {
         toast.error("Please provide Subject, Topic, and Class.");
         return;
       }
-  
-      // Validate answers
-      const missingAnswers = imageFiles.filter((file) => !answers[file.name]?.trim());
-      if (missingAnswers.length > 0) {
+
+      const missing = savedImages.filter((img) => !answers[img.id]?.trim());
+      if (missing.length > 0) {
         toast.error("Please provide answers for all uploaded images.");
         return;
       }
-  
-      const newQuestions = imageFiles.map((file) => ({
-        type: "image",
-        imageFile: file,
-        answer: answers[file.name].toLowerCase(),
-        subject: sharedSubject.toLowerCase(),
-        topic: sharedTopic.toLowerCase(),
-        classs: sharedClass.toLowerCase(),
-      }));
-  
-      await addBulkQuestions(examId, newQuestions);
-  
-      // Reset state after success
-      setImageFiles([]);
+
+      const newQuestions = savedImages.map((img) => {
+        const file = dataUrlToFile(img.dataUrl, img.name);
+        return {
+          type: "image",
+          imageFile: file,
+          answer: answers[img.id].toLowerCase(),
+          subject: sharedSubject.toLowerCase(),
+          topic: sharedTopic.toLowerCase(),
+          classs: sharedClass.toLowerCase(),
+        };
+      });
+
+      await addBulkQuestions(examId!, newQuestions);
+
+      setSavedImages([]);
       setAnswers({});
-      // setSharedSubject("");
-      // setSharedTopic("");
-      // setSharedClass("");
+      await del(DB_KEY); // ✅ clear IndexedDB after successful save
       toast.success("Image questions saved successfully!");
-    } catch (error) {
-      console.error("Error saving image questions:", error?.response?.data?.message);
-      alert("Something went wrong while saving. Please try again.");
+    } catch (err) {
+      console.error("Error saving image questions:", err);
+      toast.error("Something went wrong while saving. Please try again.");
     }
   };
 
-
-
-
+  // ---- CSV & XLSX logic unchanged ---- //
   const handleCsvChange = async (file: File) => {
     setCsvFile(file);
     const text = await file.text();
@@ -722,13 +1235,11 @@ useEffect(() => {
   };
 
   const handleSaveCSV = async () => {
-    console.log("her");
-    
     if (!examId || !csvFile) return;
     const newQuestions = csvPreview
       .slice(1)
       .map((row) => {
-        const [q, a, b, c, d, ans,subject,topic,classs] = row;
+        const [q, a, b, c, d, ans, subject, topic, classs] = row;
         return {
           type: "text",
           questionText: q,
@@ -736,23 +1247,20 @@ useEffect(() => {
           optionB: b,
           optionC: c,
           optionD: d,
-          subject:subject?.trim().toLowerCase(),
+          subject: subject?.trim().toLowerCase(),
           answer: ans?.trim().toLowerCase(),
           topic: topic?.trim().toLowerCase(),
-          classs: classs?.trim().toLowerCase()
+          classs: classs?.trim().toLowerCase(),
         };
       })
       .filter((q) => q.questionText);
-      console.log("upto");
-      
- try{  
-   await addBulkQuestions(examId, newQuestions);
-    setCsvFile(null);
-    setCsvPreview([]);
-    toast.success("Questions addedd sucessfully")
-  }catch(err){
-      console.log(err);
-      
+    try {
+      await addBulkQuestions(examId, newQuestions);
+      setCsvFile(null);
+      setCsvPreview([]);
+      toast.success("Questions added successfully");
+    } catch (err) {
+      toast.error("Failed to save CSV questions");
     }
   };
 
@@ -762,6 +1270,7 @@ useEffect(() => {
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+     
     const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: "" });
     setXlsxPreview(rows);
   };
@@ -771,25 +1280,23 @@ useEffect(() => {
     const newQuestions = xlsxPreview.map((row) => ({
       type: "text",
       questionText: row.questionText,
-      optionA: row["optionA"],
-      optionB: row["optionB"],
-      optionC: row["optionC"],
-      optionD: row["optionD"],
-      subject:row.subject?.toString().toLowerCase(),
+      optionA: row.optionA,
+      optionB: row.optionB,
+      optionC: row.optionC,
+      optionD: row.optionD,
+      subject: row.subject?.toString().toLowerCase(),
       answer: row.answer?.toString().toLowerCase(),
       topic: row.topic?.toString().toLowerCase(),
       classs: row.classs?.toString().toLowerCase(),
     }));
-    try{
- await addBulkQuestions(examId, newQuestions);
-    setXlsxFile(null);
-    setXlsxPreview([]);
-    toast.success("Questions addedd successfully")
-    }catch(err){
-console.log(err);
-
+    try {
+      await addBulkQuestions(examId, newQuestions);
+      setXlsxFile(null);
+      setXlsxPreview([]);
+      toast.success("Questions added successfully");
+    } catch (err) {
+      toast.error("Failed to save XLSX questions");
     }
-   
   };
 
   return (
@@ -802,10 +1309,8 @@ console.log(err);
         >
           <ArrowLeft className="w-5 h-5" /> Back
         </Button>
-        <h1 className="text-3xl font-bold text-center flex-1 text-gray-800">
-          Add Questions
-        </h1>
-        <div className="w-24"></div>
+        <h1 className="text-3xl font-bold text-center flex-1 text-gray-800">Add Questions</h1>
+        <div className="w-24" />
       </div>
 
       {/* Tabs */}
@@ -813,9 +1318,7 @@ console.log(err);
         <button
           onClick={() => setActiveTab("image")}
           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-md transition ${
-            activeTab === "image"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 hover:bg-gray-200"
+            activeTab === "image" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
           }`}
         >
           <ImageIcon className="w-5 h-5" /> Upload Images
@@ -823,9 +1326,7 @@ console.log(err);
         <button
           onClick={() => setActiveTab("csv")}
           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-md transition ${
-            activeTab === "csv"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 hover:bg-gray-200"
+            activeTab === "csv" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
           }`}
         >
           <FileText className="w-5 h-5" /> Upload CSV
@@ -833,9 +1334,7 @@ console.log(err);
         <button
           onClick={() => setActiveTab("xlsx")}
           className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold shadow-md transition ${
-            activeTab === "xlsx"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 hover:bg-gray-200"
+            activeTab === "xlsx" ? "bg-blue-600 text-white" : "bg-gray-100 hover:bg-gray-200"
           }`}
         >
           <FileSpreadsheet className="w-5 h-5" /> Upload XLSX
@@ -848,101 +1347,97 @@ console.log(err);
           <div
             onDrop={handleImageDrop}
             onDragOver={(e) => e.preventDefault()}
+            onClick={() => fileInputRef.current?.click()}
             className="border-2 border-dashed border-gray-400 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50"
           >
-            Drag & Drop images here or paste (Ctrl+V)
+            Drag & Drop images here, paste (Ctrl+V), or{" "}
+            <span className="text-blue-600 underline cursor-pointer">click to upload</span>
             <input
+              ref={fileInputRef}
               type="file"
               multiple
               accept="image/*"
               className="hidden"
-              onChange={(e) => {
-                if (e.target.files) {
-                  const uniqueFiles = Array.from(e.target.files).map((f) =>
-                    makeUniqueFile(f)
-                  );
-                  setImageFiles([...imageFiles, ...uniqueFiles]);
-                }
-              }}
+              onChange={handleFileSelect}
             />
           </div>
-      {activeTab === "image" && imageFiles.length > 0 && (
-  <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-    <input
-      type="text"
-      placeholder="Subject"
-      className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
-      value={sharedSubject}
-      onChange={(e) => setSharedSubject(e.target.value)}
-    />
-    <input
-      type="text"
-      placeholder="Topic"
-      className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
-      value={sharedTopic}
-      onChange={(e) => setSharedTopic(e.target.value)}
-    />
-    <input
-      type="text"
-      placeholder="Class"
-      className="border px-3 py-2 rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
-      value={sharedClass}
-      onChange={(e) => setSharedClass(e.target.value)}
-    />
-  </div>
-)}
-          {imageFiles.length > 0 && (
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {imageFiles.map((file) => (
-                <div
-                  key={file.name}
-                  className="p-4 border rounded-lg shadow-sm bg-white flex flex-col"
-                >
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={file.name}
-                    className="w-full h-40 object-contain rounded mb-3"
-                  />
-                  <p className="text-sm truncate mb-2">{file.name}</p>
-                  <input
-                    type="text"
-                    placeholder="Answer (a/b/c/d)"
-                    className="border px-2 py-1 rounded w-full"
-                    value={answers[file.name] || ""}
-                    onChange={(e) =>
-                      setAnswers((prev) => ({
-                        ...prev,
-                        [file.name]: e.target.value,
-                      }))
-                    }
-                  />
-                  {/* <input
-                    type="text"
-                    placeholder="Subject"
-                    className="border px-2 py-1 rounded w-full"
-                    value={subjects[file.name] || ""}
-                    onChange={(e) =>
-                      setSubjects((prev) => ({
-                        ...prev,
-                        [file.name]: e.target.value,
-                      }))
-                    }
-                  /> */}
-                </div>
-              ))}
-            </div>
-          )}
 
-          {imageFiles.length > 0 && (
-            <div className="text-center mt-6">
-              <button
-                onClick={handleSaveImages}
-                disabled={isLoading}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold"
-              >
-                {isLoading ? "Saving..." : "Save Image Questions"}
-              </button>
-            </div>
+          {savedImages.length > 0 && (
+            <>
+              <div className="my-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <input
+                  placeholder="Subject"
+                  value={sharedSubject}
+                  onChange={(e) => setSharedSubject(e.target.value)}
+                  className="border rounded-lg px-3 py-2"
+                />
+                <input
+                  placeholder="Topic"
+                  value={sharedTopic}
+                  onChange={(e) => setSharedTopic(e.target.value)}
+                  className="border rounded-lg px-3 py-2"
+                />
+                <input
+                  placeholder="Class"
+                  value={sharedClass}
+                  onChange={(e) => setSharedClass(e.target.value)}
+                  className="border rounded-lg px-3 py-2"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+                {savedImages.map((img) => (
+                  <div key={img.id} className="p-4 border rounded-lg shadow-sm bg-white flex flex-col">
+                    <img src={img.dataUrl} alt={img.name} className="w-full h-40 object-contain rounded mb-3" />
+                    <p className="text-sm truncate mb-2">{img.name}</p>
+
+                    <input
+                      type="text"
+                      placeholder="Answer (a/b/c/d)"
+                      className="border px-2 py-1 rounded w-full"
+                      value={answers[img.id] || ""}
+                      onChange={(e) =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [img.id]: e.target.value,
+                        }))
+                      }
+                    />
+
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => {
+                          removeImage(img.id);
+                        }}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                      >
+                        Remove
+                      </button>
+                      <button
+                        onClick={() => {
+                          // open preview in new tab
+                          const w = window.open();
+                          if (w) w.document.write(`<img src="${img.dataUrl}" style="max-width:100%"/>`);
+                        }}
+                        className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded"
+                      >
+                        Preview
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center mt-6">
+                <button
+                  onClick={handleSaveImages}
+                  disabled={isLoading}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold"
+                >
+                  {isLoading ? "Saving..." : "Save Image Questions"}
+                </button>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -1045,12 +1540,7 @@ console.log(err);
       {activeTab && (
         <div className="text-center mt-8">
           <button
-          onClick={() => 
-  user?.role === "faculty" 
-    ? navigate("/faculty/dashboard") 
-    : navigate("/admin/dashboard")
-}
-
+            onClick={() => (user?.role === "faculty" ? navigate("/faculty/dashboard") : navigate("/admin/dashboard"))}
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-semibold"
           >
             Finish

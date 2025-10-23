@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // // src/store/examResultStore.ts
 // import { create } from "zustand";
@@ -141,7 +141,7 @@ interface ExamResultState {
   fetchUserAttemptedExams:(userId:string)=>Promise<void>
 }
 
-export const useExamResultStore = create<ExamResultState>((set, get) => ({
+export const useExamResultStore = create<ExamResultState>((set) => ({
   attempts: [],
   answers: [],
   facultyExams: [],

@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate} from "react-router-dom";
 import { useEventsStore } from "@/store/eventStore";
 import {
   Box,
@@ -17,7 +17,7 @@ import { toast } from "react-toastify";
 
 import { Button } from "@/components/ui/button";
 const EventForm = () => {
-  const { createEvent, updateEvent, events, fetchEvents, removeImageFromEvent } =
+  const { createEvent, updateEvent, fetchEvents, removeImageFromEvent ,events} =
     useEventsStore();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -31,23 +31,35 @@ const EventForm = () => {
 useEffect(() => {
   const loadEvent = async () => {
     if (!id) return;
-    await fetchEvents();
-    const event = events.find((e) => e.id === id);
-    if (event) {
-      setEventname(event.eventname);
-      setDescription(event.description || "");
-      setExistingImages(event.images || []);
+    setLoading(true);
+    try {
+      // Wait for latest events from backend
+    fetchEvents()
+      const allEvents =events
+      const event = allEvents.find((e) => e.id === id);
+
+      if (event) {
+        setEventname(event.eventname);
+        setDescription(event.description || "");
+        setExistingImages(event.images || []);
+      }
+    } catch (err) {
+      console.error("Failed to load event:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   loadEvent();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [id]); // only run on mount or id change
+}, [events, fetchEvents, id]);
+ // only run on mount or id change
 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files)
-      setNewImages((prev) => [...prev, ...Array.from(e.target.files)]);
+    if (e.target.files){
+      const ei = e.target.files
+      setNewImages((prev) => [...prev, ...Array.from(ei)]);
+    }
   };
 
   const removeNewImage = (file: File) => {
@@ -93,46 +105,203 @@ useEffect(() => {
     }
   };
 
-  return (
-     <div className="p-4 md:p-8 bg-white shadow-lg rounded-2xl max-w-4xl mx-auto mt-6">
-      { id && (
-  <div className="flex justify-between items-center mb-4">
-    <Button
-      onClick={() => navigate(-1)}
-      className="flex items-center gap-2 bg-gray-200 hover:bg-gray-400 text-white"
-    >
-      <ArrowLeft className="w-5 h-5" /> Back
-    </Button>
-    <Button
-     onClick={() => navigate("/admin/dashboard")}
-      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-    >
-      <Home className="w-5 h-5" /> Dashboard
-    </Button>
-  </div>
-)}
+//   return (
+//      <div className="p-4 md:p-8 bg-white shadow-lg rounded-2xl max-w-4xl mx-auto mt-6">
+//       { id && (
+//   <div className="flex justify-between items-center mb-4">
+//     <Button
+//       onClick={() => navigate(-1)}
+//       className="flex items-center gap-2 bg-gray-200 hover:bg-gray-400 text-white"
+//     >
+//       <ArrowLeft className="w-5 h-5" /> Back
+//     </Button>
+//     <Button
+//      onClick={() => navigate("/admin/dashboard")}
+//       className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+//     >
+//       <Home className="w-5 h-5" /> Dashboard
+//     </Button>
+//   </div>
+// )}
     
-    <Box sx={{ p: 3, width: "100%" }} className="w-full">
-      {/* 🔹 Top Bar */}
-     {/* { id &&<div className="flex justify-between items-center mb-4">
-            <Button
+//     <Box sx={{ p: 3, width: "100%" }} className="w-full">
+//       {/* 🔹 Top Bar */}
+//      {/* { id &&<div className="flex justify-between items-center mb-4">
+//             <Button
+//           onClick={() => navigate(-1)}
+//           className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800"
+//         >
+//           <ArrowLeft className="w-5 h-5" /> Back
+//         </Button>
+//         <Button
+//           component={Link}
+//           to="/faculty/dashboard"
+//           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+//         >
+//           <Home className="w-5 h-5" /> Dashboard
+//         </Button>
+//       </div>} */}
+
+
+
+
+//       {/* 🔹 Heading */}
+//       <div className="flex items-center justify-center mb-6">
+//         <ImagePlus className="w-8 h-8 text-blue-600" />
+//         <Typography variant="h4" className="ml-2 font-bold text-gray-800">
+//           {id ? "Edit Event" : "Add New Event"}
+//         </Typography>
+//       </div>
+
+//       {/* 🔹 Form Card */}
+//       <Card
+//         sx={{
+//           maxWidth: 600,
+//           margin: "0 auto",
+//           borderRadius: 3,
+//           boxShadow: 3,
+//         }}
+//       >
+//         <CardContent>
+//           <form
+//             onSubmit={handleSubmit}
+//             className="flex flex-col gap-5 w-full"
+//           >
+//             <TextField
+//               label="Event Name"
+//               value={eventname}
+//               onChange={(e) => setEventname(e.target.value)}
+//               required
+//               fullWidth
+//             />
+
+//             <TextField
+//               label="Description"
+//               value={description}
+//               onChange={(e) => setDescription(e.target.value)}
+//               multiline
+//               rows={3}
+//               fullWidth
+//             />
+
+//             {/* Existing Images */}
+//             {existingImages.length > 0 && (
+//               <div>
+//                 <Typography
+//                   variant="subtitle1"
+//                   className="font-semibold text-gray-700 mb-2"
+//                 >
+//                   Existing Images
+//                 </Typography>
+//                 <div className="flex flex-wrap gap-3">
+//                   {existingImages.map((img) => (
+//                     <div key={img} className="relative w-24 h-24">
+//                       <img
+//                         src={img}
+//                         alt="existing"
+//                         className="w-full h-full object-cover rounded-lg border"
+//                       />
+//                       <button
+//                         type="button"
+//                         onClick={() => removeExistingImage(img)}
+//                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+//                       >
+//                         <X size={14} />
+//                       </button>
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* New Images */}
+//             {newImages.length > 0 && (
+//               <div>
+//                 <Typography
+//                   variant="subtitle1"
+//                   className="font-semibold text-gray-700 mb-2"
+//                 >
+//                   New Images
+//                 </Typography>
+//                 <div className="flex flex-wrap gap-3">
+//                   {newImages.map((file) => (
+//                     <div key={file.name} className="relative w-24 h-24">
+//                       <img
+//                         src={URL.createObjectURL(file)}
+//                         alt={file.name}
+//                         className="w-full h-full object-cover rounded-lg border"
+//                       />
+//                       <button
+//                         type="button"
+//                         onClick={() => removeNewImage(file)}
+//                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+//                       >
+//                         <X size={14} />
+//                       </button>
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+//             )}
+
+//             <div>
+//               <Typography
+//                 variant="subtitle1"
+//                 className="font-semibold text-gray-700 mb-2"
+//               >
+//                 Upload Images
+//               </Typography>
+//               <input
+//                 type="file"
+//                 multiple
+//                 accept="image/*"
+//                 onChange={handleFileChange}
+//                 className="block w-full text-sm text-gray-700 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-white file:bg-blue-600 hover:file:bg-blue-700 cursor-pointer"
+//               />
+//             </div>
+
+//             <Button
+//               type="submit"
+//               variant="contained"
+//               color="primary"
+//               disabled={loading}
+//               className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+//             >
+//               {loading ? (
+//                 <CircularProgress size={24} color="inherit" />
+//               ) : id ? (
+//                 "Update Event"
+//               ) : (
+//                 "Create Event"
+//               )}
+//             </Button>
+//           </form>
+//         </CardContent>
+//       </Card>
+//     </Box>
+//     </div>
+//   );
+
+return (
+  <div className="p-4 md:p-8 bg-white shadow-lg rounded-2xl max-w-4xl mx-auto mt-6">
+    {id && (
+      <div className="flex justify-between items-center mb-4">
+        <Button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800"
+          className="flex items-center gap-2 bg-gray-200 hover:bg-gray-400 text-white"
         >
           <ArrowLeft className="w-5 h-5" /> Back
         </Button>
         <Button
-          component={Link}
-          to="/faculty/dashboard"
+          onClick={() => navigate("/admin/dashboard")}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
         >
           <Home className="w-5 h-5" /> Dashboard
         </Button>
-      </div>} */}
+      </div>
+    )}
 
-
-
-
+    <Box sx={{ p: 3, width: "100%" }} className="w-full">
       {/* 🔹 Heading */}
       <div className="flex items-center justify-center mb-6">
         <ImagePlus className="w-8 h-8 text-blue-600" />
@@ -151,36 +320,43 @@ useEffect(() => {
         }}
       >
         <CardContent>
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-5 w-full"
-          >
-            <TextField
-              label="Event Name"
-              value={eventname}
-              onChange={(e) => setEventname(e.target.value)}
-              required
-              fullWidth
-            />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
+            
+            {/* Event Name */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                Event Name
+              </label>
+              <TextField
+                label=""
+                value={eventname}
+                onChange={(e) => setEventname(e.target.value)}
+                required
+                fullWidth
+              />
+            </div>
 
-            <TextField
-              label="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              multiline
-              rows={3}
-              fullWidth
-            />
+            {/* Description */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                Description
+              </label>
+              <TextField
+                label=""
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                multiline
+                rows={3}
+                fullWidth
+              />
+            </div>
 
             {/* Existing Images */}
             {existingImages.length > 0 && (
               <div>
-                <Typography
-                  variant="subtitle1"
-                  className="font-semibold text-gray-700 mb-2"
-                >
+                <label className="block mb-2 font-medium text-gray-700">
                   Existing Images
-                </Typography>
+                </label>
                 <div className="flex flex-wrap gap-3">
                   {existingImages.map((img) => (
                     <div key={img} className="relative w-24 h-24">
@@ -205,12 +381,9 @@ useEffect(() => {
             {/* New Images */}
             {newImages.length > 0 && (
               <div>
-                <Typography
-                  variant="subtitle1"
-                  className="font-semibold text-gray-700 mb-2"
-                >
+                <label className="block mb-2 font-medium text-gray-700">
                   New Images
-                </Typography>
+                </label>
                 <div className="flex flex-wrap gap-3">
                   {newImages.map((file) => (
                     <div key={file.name} className="relative w-24 h-24">
@@ -232,13 +405,11 @@ useEffect(() => {
               </div>
             )}
 
+            {/* Upload Images */}
             <div>
-              <Typography
-                variant="subtitle1"
-                className="font-semibold text-gray-700 mb-2"
-              >
+              <label className="block mb-2 font-medium text-gray-700">
                 Upload Images
-              </Typography>
+              </label>
               <input
                 type="file"
                 multiple
@@ -248,9 +419,10 @@ useEffect(() => {
               />
             </div>
 
+            {/* Submit Button */}
             <Button
               type="submit"
-              variant="contained"
+              variant="ghost"
               color="primary"
               disabled={loading}
               className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
@@ -267,8 +439,13 @@ useEffect(() => {
         </CardContent>
       </Card>
     </Box>
-    </div>
-  );
-};
+  </div>
+);
+
+
+}
+
+
+;
 
 export default EventForm;

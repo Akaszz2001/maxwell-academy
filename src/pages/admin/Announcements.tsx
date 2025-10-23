@@ -292,7 +292,7 @@
 
 
 
-import { useAnnouncementStore } from "@/store/announcementStore";
+import { useAnnouncementStore } from "@/store/AnnouncementStore";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { X, ArrowLeft, Home } from "lucide-react";
@@ -333,10 +333,13 @@ export default function AnnouncementForm() {
           audience: existing.audience || "all",
           files: [],
         });
-        if (existing.attachementUrls && Array.isArray(existing.attachementUrls)) {
+        console.log(existing);
+        
+        if (existing && existing.attachementUrls && Array.isArray(existing.attachementUrls)) {
           const filesData = existing.attachementUrls.map(
             (url: string, index: number) => ({
-              name: existing.attachement[index],
+             name: String(existing.attachement?.[index] ?? `file-${index}`),
+
               url,
             })
           );
@@ -352,13 +355,15 @@ export default function AnnouncementForm() {
 
   useEffect(() => {
     loadAnnouncement();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [announceId, fetchAnnouncementsById, updateAnnouncement]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
+    const files=e.target.files
     setForm((prev) => ({
       ...prev,
-      files: [...prev.files, ...Array.from(e.target.files)],
+      files: [...prev.files, ...Array.from(files)],
     }));
   };
 
@@ -398,7 +403,9 @@ export default function AnnouncementForm() {
           audience: form.audience as "all" | "student" | "faculty",
           attachement: form.files,
           active: true,
-          removedFiles,
+          removedFiles: removedFiles,
+          created: "",
+          updated: ""
         });
         toast.success("Announcement updated successfully!");
         await loadAnnouncement();
@@ -411,14 +418,20 @@ export default function AnnouncementForm() {
           audience: form.audience as "all" | "student" | "faculty",
           attachement: form.files,
           active: true,
+          created: "",
+          updated: "",
         });
         toast.success("Announcement created successfully!");
         setForm({ title: "", subject: "", audience: "all", files: [] });
         setExistingFiles([]);
         setRemovedFiles([]);
       }
-    } catch (err) {
-      toast.error("Error submitting announcement:", err);
+    } catch (err:unknown) {
+     if (err instanceof Error) {
+    toast.error(err.message); // safe, TypeScript knows it's a string
+  } else {
+    toast.error("An unexpected error occurred");
+  }
     } finally {
       setIsLoading(false);
     }

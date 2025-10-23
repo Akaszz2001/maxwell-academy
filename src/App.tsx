@@ -103,27 +103,43 @@ import PerformersList from "./pages/admin/PerformersList";
 import TopPerformers from "./pages/TopTopPerformers";
 import UserAttemptedExams from "./pages/admin/UserAttemptedExams";
 const noNavbarPatterns: RegExp[] = [
-  /^\/student\/dashboard\/?$/, // student dashboard exact
+  /^\/student\/dashboard\/?$/, 
+  
+    /^\/admin\/dashboard\/createAnnouncement\/?$/,// student dashboard exact
+
   /^\/admin\/dashboard\/?$/, // student dashboard exact
    /^\/admin\/dashboard\/addEvent\/?$/, // student dashboard exact
    /^\/admin\/dashboard\/eventList\/?$/, // student dashboard exact
-   /^\/admin\/dashboard\/eventList\/w+$/, // student dashboard exact
-   /^\/admin\/dashboard\/userExams\/w+$/, // student dashboard exact
+   /^\/admin\/dashboard\/eventList\/w+$/, 
+   /^\/student\/dashboard\/announcements\/\w+$/, 
+   /^\/faculty\/dashboard\/announcements\/\w+$/, 
+   
+   // student dashboard exact
+    // student dashboard exact
   /^\/student\/dashboard\/allExams\/?$/, // allExams list
-  /^\/admin\/dashboard\/createAnnouncement\/?$/, // allExams list
   /^\/admin\/dashboard\/editAnnouncement\/\w+$/, // allExams list
   /^\/admin\/dashboard\/editPerformer\/\w+$/, // allExams list
   /^\/admin\/dashboard\/createFacultyGallery\/\w+$/, // allExams list
-  /^\/admin\/dashboard\/addEvent\/\w+$/, // allExams list
+  // allExams list
   /^\/admin\/dashboard\/showCredential\/?$/, // allExams list
-  /^\/admin\/dashboard\/addQuestions\/?$/, // allExams list
+  /^\/admin\/dashboard\/addQuestions\/?$/,
+
+  /^\/admin\/dashboard\/addEvent\/\w+$/,
+  /^\/admin\/dashboard\/userExams\/\w+$/,
+  /^\/admin\/dashboard\/userExams\/\w+\/answers\/\w+$/,
+  /^\/admin\/dashboard\/exams\/\w+\/edit$/,
+  /^\/admin\/dashboard\/exams\/\w+\/questions$/,
+ /^\/admin\/dashboard\/exams\/\w+\/questions\/add$/,
+
+
+
+
+
   /^\/student\/dashboard\/allExams\/\w+$/, // exam window (dynamic examId)
   /^\/student\/dashboard\/attendedExams\/\w+$/, // exam window (dynamic examId)
   /^\/faculty\/dashboard\/?$/,
   /^\/faculty\/dashboard\/exams\/\w+\/edit$/,
-
   /^\/faculty\/dashboard\/exams\/\w+\/questions\/add$/,
-
   /^\/faculty\/dashboard\/studentResults\/\w+\/studentList$/,
   /^\/faculty\/dashboard\/exams\/\w+\/questions$/,
 
@@ -154,6 +170,8 @@ function App() {
           <Route path="/gallery" element={<EventsGallery />} />
           <Route path="/faculties" element={<FacultyGalleryList />} />
           <Route path="/topperformers" element={<TopPerformers />} />
+          <Route path="/signup" element={<StudentSignup />} />
+          <Route path="/signup/showcredential" element={<CredentialShowing/>} />
 
           {/* student routes */}
           <Route
@@ -362,6 +380,31 @@ function App() {
             element={
               <RequireAuth roles={["admin"]}>
                 <StudentExamResults />
+              </RequireAuth>
+            }
+          />
+         <Route
+            path="/admin/dashboard/exams/:examId/edit"
+            element={
+              <RequireAuth roles={["admin"]}>
+                <CreateExam />
+              </RequireAuth>
+            }
+          />
+        <Route
+            path="/admin/dashboard/exams/:examId/questions"
+            element={
+              <RequireAuth roles={['admin']}>
+                <EditQuestions />
+              </RequireAuth>
+            }
+          />
+
+     <Route
+            path="/admin/dashboard/exams/:examId/questions/add"
+            element={
+              <RequireAuth roles={["admin"]}>
+                <AddQuestions />
               </RequireAuth>
             }
           />

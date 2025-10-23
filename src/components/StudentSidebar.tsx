@@ -1,12 +1,25 @@
 
 import React, { useEffect, useState } from "react";
-import { Menu, BookOpen, CheckCircle, Clock, Trophy, Calendar, Play, Target, Home, BarChart3, Users, Settings, LogOut, X, MegaphoneIcon, Bell } from "lucide-react";
+import { BookOpen,  Home, BarChart3,  LogOut, X,  Bell } from "lucide-react";
 
 import { useAuthStore } from "@/store/authStore";
-import { useAnnouncementStore } from "@/store/announcementStore";
+import { useAnnouncementStore } from "@/store/AnnouncementStore";
+
+
+interface StudentSidebarProps {
+  isSidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  activeRoute: string;
+  setActiveRoute: (route: string) => void;
+}
 
 // Sidebar Component
-const StudentSidebar = ({ isSidebarOpen, setSidebarOpen, activeRoute, setActiveRoute }) => {
+const StudentSidebar: React.FC<StudentSidebarProps> = ({
+  isSidebarOpen,
+  setSidebarOpen,
+  activeRoute,
+  setActiveRoute
+}) => {
         const {signOut}=useAuthStore()
   const [hasUnread, setHasUnread] = useState(false);
   const {fetchAnnouncementsForNotfications,announcements}=useAnnouncementStore()
@@ -31,7 +44,7 @@ useEffect(() => {
 
 useEffect(() => {
   // current logged-in user
-  if (!user.id) return;
+  if (!user?.id) return;
 
   const visitedByUser = JSON.parse(localStorage.getItem("visitedAnnouncements") || "{}");
 
@@ -106,7 +119,7 @@ useEffect(() => {
       {/* Mobile overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
+          className="fixed inset-0  bg-white/20 backdrop-blur-md z-40 lg:hidden" 
           onClick={() => setSidebarOpen(false)}
         />
       )}

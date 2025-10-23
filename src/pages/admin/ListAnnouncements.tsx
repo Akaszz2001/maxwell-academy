@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // import React, { useEffect } from "react";
 // import {
 //   Card,
@@ -106,7 +108,7 @@
 
 
 
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -115,7 +117,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Calendar, FileText, Trash2 } from "lucide-react";
-import { useAnnouncementStore } from "@/store/announcementStore";
+import { useAnnouncementStore } from "@/store/AnnouncementStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -129,7 +131,9 @@ export default function ListAnnouncements() {
 
   useEffect(() => {
     fetchAnnouncements();
-  }, []);
+    console.log(announcements);
+    
+  }, [ fetchAnnouncements]);
 
   const confirmAnnounceDel=async()=>{
     setDelAnnounceMsg(false)

@@ -1,22 +1,21 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 
 
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+
 import { toast } from "react-toastify";
 import { useQuestionStore } from "@/store/questionStore";
-import pb from "@/services/pocketbase";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useAuthStore } from "@/store/authStore";
+
+
 
 export default function AllQuestions() {
 
-  const navigate = useNavigate();
+
 
   const { getAllQuestionsByExam, updateQuestion,  } =
     useQuestionStore();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [activeQuestions, setActiveQuestions] = useState<any[]>([]);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -25,7 +24,7 @@ const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   // search states
   const [activeSearch, setActiveSearch] = useState("");
 
-const {user}=useAuthStore()
+
   const fetchQuestions = async () => {
 
     try {
@@ -66,6 +65,7 @@ const {user}=useAuthStore()
   };
 
   
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const handleSave = async (q: any) => {
   try {
     await updateQuestion(q.id, {
