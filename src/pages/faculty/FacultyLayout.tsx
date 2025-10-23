@@ -11,7 +11,7 @@ import FacultyExams from "./FacultyExans";
 import CreateExam from "./CreateExam";
 import StudentResults from "./StudentResults";
 import AnnouncementList from "../AnnouncementList";
-import { useAnnouncementStore } from "@/store/announcementStore";
+import { useAnnouncementStore } from "@/store/AnnouncementStore";
 import { useAuthStore } from "@/store/authStore";
 
 export default function FacultyLayout() {
