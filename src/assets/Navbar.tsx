@@ -82,7 +82,9 @@ const navigate=useNavigate()
           </div>
 
           {/* Center Section - Navigation Links (Desktop) with Geometric Accents */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* <div className="hidden md:flex items-center gap-1"> */}
+          <div className="hidden lg:flex items-center gap-1">
+
             {navLinks.map((link) => (
               <button
               
@@ -121,7 +123,10 @@ const navigate=useNavigate()
           </div>
 
           {/* Right Section - Enhanced Login Button (Desktop) */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* <div className="hidden md:flex items-center gap-4"> */}
+
+          <div className="hidden  lg:flex items-center gap-4">
+
             <button className="relative group overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95">
               {/* Animated background */}
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-400 transform translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
@@ -160,7 +165,7 @@ const navigate=useNavigate()
           {/* Hamburger Menu Button (Mobile) with Animation */}
           <button
             onClick={toggleMenu}
-            className="md:hidden relative w-10 h-10 text-gray-700 hover:text-blue-600 transition-colors duration-300 focus:outline-none group"
+           className="lg:hidden relative w-10 h-10 text-gray-700 hover:text-blue-600 transition-colors duration-300 focus:outline-none group"
             aria-label="Toggle navigation menu"
             aria-expanded={isOpen}
           >
@@ -176,7 +181,7 @@ const navigate=useNavigate()
 
       {/* Mobile Menu with Geometric Design */}
       <div
-        className={`md:hidden bg-white/95 backdrop-blur-lg border-t border-blue-100 transition-all duration-500 overflow-hidden ${
+      className={`lg:hidden bg-white/95 backdrop-blur-lg border-t border-blue-100 transition-all duration-500 overflow-hidden ${
           isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
         }`}
       >

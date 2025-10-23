@@ -13,12 +13,13 @@ import StudentResults from "./StudentResults";
 import AnnouncementList from "../AnnouncementList";
 import { useAnnouncementStore } from "@/store/AnnouncementStore";
 import { useAuthStore } from "@/store/authStore";
+import { useNavigate } from "react-router-dom";
 
 export default function FacultyLayout() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 const {user}=useAuthStore()
   const [activeRoute, setActiveRoute] = useState("dashboard");
-
+const navigate=useNavigate()
     const [hasUnread, setHasUnread] = useState(false);
     const {fetchAnnouncementsForNotfications,announcements}=useAnnouncementStore()
 
@@ -34,6 +35,8 @@ const {user}=useAuthStore()
         return <StudentResults/>
       case "Notifications":
         return <AnnouncementList/>
+        case 'home':
+            navigate('/')
      
     }
   };

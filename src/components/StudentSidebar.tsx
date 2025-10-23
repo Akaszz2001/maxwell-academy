@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { BookOpen,  Home, BarChart3,  LogOut, X,  Bell } from "lucide-react";
+import { BookOpen,  Home, BarChart3,  LogOut, X,  Bell, Grid } from "lucide-react";
 
 import { useAuthStore } from "@/store/authStore";
 import { useAnnouncementStore } from "@/store/AnnouncementStore";
@@ -25,7 +25,8 @@ const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const {fetchAnnouncementsForNotfications,announcements}=useAnnouncementStore()
 const {user}=useAuthStore()
   const navigationItems = [
-    { id: "dashboard", label: "Dashboard", icon: Home },
+           { id: "home", label: "Home", icon: Home },
+       { id: "dashboard", label: "Dashboard", icon: Grid },
     { id: "exams", label: "All Exams", icon: BookOpen },
     { id: "results", label: "Results", icon: BarChart3 },
     { id: "Notifications", label: "Notifications", icon: Bell },

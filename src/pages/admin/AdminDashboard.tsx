@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
 import { useExamStore, type Exam } from "../../store/examStore";
 import { useAuthStore } from "../../store/authStore";
-import { Users, BookOpen, UserCog, Plus } from "lucide-react";
+import { Users, BookOpen, UserCog } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function AdminDashboard() {

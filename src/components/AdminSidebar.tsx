@@ -1,7 +1,7 @@
 
 
 
-import { Home, LogOut, X,  GraduationCap, School, ClipboardPlus, FileText, FileQuestion, User,  UserCheck,  Megaphone,  MegaphoneIcon, PlusCircle, ImagePlus, Images, Plus, User2Icon } from "lucide-react";
+import { Home, LogOut, X,  GraduationCap, School, ClipboardPlus, FileText, FileQuestion, User,  UserCheck,  Megaphone,  MegaphoneIcon, PlusCircle, ImagePlus, Images, Plus, User2Icon, Grid } from "lucide-react";
 
 
 
@@ -23,7 +23,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         const {signOut}=useAuthStore()
 
   const navigationItems = [
-    { id: "dashboard", label: "Dashboard", icon: Home },
+        { id: "home", label: "Home", icon: Home },
+    { id: "dashboard", label: "Dashboard", icon: Grid },
     { id: "facultyCreation", label: "Create Faculty", icon:School },
     
     { id: "studentCreation", label: "Create Student", icon: GraduationCap },

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -34,7 +35,7 @@ if (user &&!visited[user.id].includes(announceID)) {
       console.log(announcement);
       
     }
-  }, [announceID, announcement, fetchAnnouncementsById]);
+  }, [ fetchAnnouncementsById]);
 
   if (isLoading || !announcement)
     return (

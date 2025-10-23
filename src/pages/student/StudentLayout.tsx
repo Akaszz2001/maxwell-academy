@@ -8,12 +8,15 @@ import ExamReview from "./ExamReview";
 import AnnouncementList from "../AnnouncementList";
 import { useAnnouncementStore } from "@/store/AnnouncementStore";
 import { useAuthStore } from "@/store/authStore";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentLayout() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [activeRoute, setActiveRoute] = useState("dashboard");
    const [hasUnread, setHasUnread] = useState(false);
     const {fetchAnnouncementsForNotfications,announcements}=useAnnouncementStore()
+const navigate=useNavigate()
+
 const {user}=useAuthStore()
   const renderContent = () => {
     switch (activeRoute) {
@@ -27,10 +30,9 @@ const {user}=useAuthStore()
         return <ExamReview/>
       case "Notifications":
         return <AnnouncementList/>
-      case "settings":
-        return <div className="p-8"><h1 className="text-2xl font-bold">Settings</h1></div>;
-      default:
-        return <StudentDashboard />;
+      case "home":
+      navigate('/')
+   
     }
   };
 

@@ -8,7 +8,6 @@ import AdminDashboard from "./AdminDashboard";
 import CreateFacultyPage from "./CreateFaculty";
 
 import StudentSignup from "../auth/StudentSignup";
-import AddQuestions from "../faculty/AddQuestions";
 import Questions from "./Questions";
 import AllExams from "./AllExams";
 import AllQuestions from "./AllQuestions";
@@ -23,6 +22,7 @@ import FacultyGallery from "./FaculltyGallery";
 import FacultyGalleryList from "./FacultyGalleryList";
 import PerformerForm from "./Performance";
 import PerformersList from "./PerformersList";
+import { useNavigate } from "react-router-dom";
 
 // export default function AdminLayout() {
 //   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -101,7 +101,7 @@ import PerformersList from "./PerformersList";
 export default function AdminLayout() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [activeRoute, setActiveRoute] = useState("dashboard");
-
+const navigate=useNavigate()
   const renderContent = () => {
     switch (activeRoute) {
       case "dashboard":
@@ -140,6 +140,8 @@ export default function AdminLayout() {
         return <PerformerForm />;
       case "performerlist":
         return <PerformersList />;
+      case "home":
+        navigate('/')
     }
   };
 
