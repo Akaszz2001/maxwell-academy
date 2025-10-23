@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useAnnouncementStore } from "@/store/announcementStore";
+import { useAnnouncementStore } from "@/store/AnnouncementStore";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 
