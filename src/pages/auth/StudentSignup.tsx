@@ -2,7 +2,7 @@
 import React, {  useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore, type FormData } from "../../store/authStore";
-import Person from "../../assets/person.png";
+import Person from "../../assets/Person.png";
 import { toast } from "react-toastify";
 export default function StudentSignup() {
   const navigate = useNavigate();
