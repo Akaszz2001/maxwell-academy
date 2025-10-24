@@ -978,7 +978,8 @@ export default function Questions() {
   };
 
   const handleSaveCSV = async () => {
-    if (!examId || !csvFile) return;
+    console.log("HERE")
+    if (!csvFile) return;
     const newQuestions = csvPreview
       .slice(1)
       .map((row) => {
@@ -998,7 +999,7 @@ export default function Questions() {
       })
       .filter((q) => q.questionText);
     try {
-      await addQuestionsBulk(examId, newQuestions);
+      await addQuestionsBulk("", newQuestions);
       setCsvFile(null);
       setCsvPreview([]);
       toast.success("Questions added successfully");
@@ -1019,7 +1020,7 @@ export default function Questions() {
   };
 
   const handleSaveXLSX = async () => {
-    if (!examId || !xlsxFile) return;
+    if ( !xlsxFile) return;
     const newQuestions = xlsxPreview.map((row) => ({
       type: "text",
       questionText: row.questionText,
@@ -1033,7 +1034,7 @@ export default function Questions() {
       classs: row.classs?.toString().toLowerCase(),
     }));
     try {
-      await addQuestionsBulk(examId, newQuestions);
+      await addQuestionsBulk("", newQuestions);
       setXlsxFile(null);
       setXlsxPreview([]);
       toast.success("Questions added successfully");

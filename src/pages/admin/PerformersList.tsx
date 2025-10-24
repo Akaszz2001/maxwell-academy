@@ -1,14 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePerformerStore } from "@/store/performersStore";
 import { useAuthStore } from "@/store/authStore";
 import { Trash2, Edit } from "lucide-react"; // ✅ delete & edit icons
+import { toast } from "react-toastify";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 export default function PerformersList() {
   const { performers, fetchPerformers, deletePerformer } = usePerformerStore();
   const { user } = useAuthStore();
   const navigate = useNavigate();
-
+  const [showdeltemsg,setShowDeleteMsg]=useState(false)
+ const [deleteid,setDeleteId]=useState("")
   useEffect(() => {
     fetchPerformers();
   }, [fetchPerformers]);
@@ -17,17 +20,27 @@ export default function PerformersList() {
     return <p className="text-center py-6 text-gray-500">No performers found.</p>;
   }
 
-  const handleDelete = async (id: string) => {
-    const confirmDelete = confirm("Are you sure you want to delete this performer?");
-    if (!confirmDelete) return;
-
-    try {
-      await deletePerformer(id);
-      alert("Performer deleted successfully!");
+const confirmDelete=async()=>{
+  setShowDeleteMsg(false)
+  try {
+      await deletePerformer(deleteid);
+      toast.success("Performer deleted successfully!");
+      setDeleteId("")
     } catch (err) {
       console.error("Error deleting performer:", err);
-      alert("Failed to delete performer!");
+      toast.error("Failed to delete performer!");
+      setDeleteId("")
     }
+
+}
+
+const cancelDelete=()=>{
+   setShowDeleteMsg(false)
+    setDeleteId("")
+}
+  const handleDelete = async (id: string) => {
+   setDeleteId(id)
+   setShowDeleteMsg(true)
   };
 
   return (
@@ -92,7 +105,10 @@ export default function PerformersList() {
           </div>
         ))}
       </div>
+{showdeltemsg&&
 
+<ConfirmDialog title="Delete the Performer" message="Are you sure want to delete the Performer?" confirmText="Yes"  cancelText="No"  onConfirm={confirmDelete} onCancel={cancelDelete}/>
+}
       {/* Add New Performer */}
       {/* {(user?.role === "admin" || user?.role === "faculty") && (
         <div className="flex justify-center mt-10">

@@ -68,7 +68,7 @@ console.log("EXAM RESULTS ",attempts);
       {attempts.map((attempt) => {
         const percentage = (attempt.score / attempt.totalMark) * 100;
         const isPassed = percentage >= 50;
-
+        
         return (
           <Card
             key={attempt.id}

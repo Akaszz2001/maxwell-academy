@@ -345,7 +345,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
         )}
 
-        <p className="text-center text-sm text-gray-600 mt-6">
+        {/* <p className="text-center text-sm text-gray-600 mt-6">
           Already have an account?{" "}
           <a
             href="/login"
@@ -353,7 +353,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           >
             Login
           </a>
-        </p>
+        </p> */}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { toast } from "react-toastify";
 import { useQuestionStore } from "@/store/questionStore";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 
 
@@ -12,7 +13,7 @@ export default function AllQuestions() {
 
 
 
-  const { getAllQuestionsByExam, updateQuestion,  } =
+  const { getAllQuestionsByExam, updateQuestion, deleteQuestion } =
     useQuestionStore();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,8 +24,19 @@ const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
 
   // search states
   const [activeSearch, setActiveSearch] = useState("");
+  const [showdelete,setShowDelete]=useState(false)
+  const [deleteid,setDeleteID]=useState("")
+
+  const handelDelete=(id:string)=>{
+  setDeleteID(id)
+    setShowDelete(true)
+  }
 
 
+
+  const cancelQuestionDelete=()=>{
+    setShowDelete(false)
+  }
   const fetchQuestions = async () => {
 
     try {
@@ -43,7 +55,20 @@ const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
 
  
 
- 
+   const confirmQuestionDelete=async()=>{
+    setShowDelete(false)
+    try {
+      await deleteQuestion(deleteid)
+      toast.success("Successfully deleted the question")
+      setDeleteID("")
+      fetchQuestions()
+    } catch (error) {
+      console.log(error);
+      toast.error("Deletion Failed")
+        setDeleteID("")
+    }
+  
+  }
 
   const handleChange = (qIndex: number, field: string, value: string) => {
     setActiveQuestions((prev) =>
@@ -277,12 +302,12 @@ const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
     </button>
   )}
 
-  {/* <button
-    onClick={() => handleDeactivate(q.id)}
+  <button
+    onClick={() => handelDelete(q.id)}
     className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
   >
-    Deactivate
-  </button> */}
+    Delete
+  </button>
 </td>
 
 
@@ -319,6 +344,11 @@ const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
           />
         </div>
       )}
+
+
+      {showdelete &&
+      <ConfirmDialog title="Delete Question" message="Are you sure want to delete the question?" confirmText="Yes" cancelText="No"  onConfirm={confirmQuestionDelete} onCancel={cancelQuestionDelete}/>
+      }
     </div>
   );
 }

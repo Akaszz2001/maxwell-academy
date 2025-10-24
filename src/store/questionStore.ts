@@ -27,6 +27,8 @@ interface QuestionState {
   error: string | null;
 
   fetchQuestions: (examId: string) => Promise<void>;
+  deleteQuestion: (questionId: string) => Promise<void>;
+
   getUniqueSubjects: () => Promise<string[]>;
 getQuestionsBySubject: (subject: string) => Promise<Question[]>;
 getQuestionsBySubjectClassTopic: (subject: string,topic:string,classs:string) => Promise<Question[]>;
@@ -478,6 +480,35 @@ getQuestionsByExam: async (examId: string): Promise<{ active: Question[]; others
     throw err;
   }
 },
+
+deleteQuestion: async (questionId: string) => {
+  try {
+    set({ isLoading: true, error: null });
+
+    // 1️⃣ Delete the question from "questions" collection
+    await pb.collection("questions").delete(questionId);
+
+    // 2️⃣ Also delete any mappings in "exam_questions"
+    const mappings = await pb.collection("exam_questions").getFullList({
+      filter: `questionId="${questionId}"`,
+    });
+
+    for (const mapping of mappings) {
+      await pb.collection("exam_questions").delete(mapping.id);
+    }
+
+    // 3️⃣ Update local store
+    set((state) => ({
+      questions: state.questions.filter((q) => q.id !== questionId),
+      isLoading: false,
+    }));
+
+  } catch (err: any) {
+    set({ error: err.message, isLoading: false });
+    throw err;
+  }
+},
+
 
 
 }));

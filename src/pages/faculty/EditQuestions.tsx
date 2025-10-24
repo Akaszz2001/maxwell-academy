@@ -45,7 +45,7 @@ export default function EditQuestions() {
 
   useEffect(() => {
     fetchQuestions();
-  }, [ fetchQuestions]);
+  }, [ getQuestionsByExam]);
 
   const handleDeactivate = async (id: string) => {
     try {
@@ -170,7 +170,7 @@ const handleOptionChange = (qIndex: number, optIndex: number, value: string) => 
               ? navigate(`/admin/dashboard/exams/${examId}/questions/add`, {
                   state: { subject: subject, topic: topic, classs: classs },
                 })
-              : navigate(`/admin/dashboard/exams/${examId}/questions/add`, {
+              : navigate(`/faculty/dashboard/exams/${examId}/questions/add`, {
                   state: { subject: subject, topic: topic, classs: classs },
                 })
           }

@@ -16,6 +16,7 @@ import { ArrowLeft, Home, ImagePlus, X } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/ConfirmDialog";
 const EventForm = () => {
   const { createEvent, updateEvent, fetchEvents, removeImageFromEvent ,events} =
     useEventsStore();
@@ -27,7 +28,24 @@ const EventForm = () => {
   const [newImages, setNewImages] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+const [showdelete,setShowDelete]=useState(false)
+const [imageurl,setImageUrl]=useState("")
 
+
+const onConfirmDeleteImage=async()=>{
+  setShowDelete(false)
+   try {
+      await removeImageFromEvent(id, imageurl);
+      setExistingImages((prev) => prev.filter((img) => img !== imageurl));
+    } catch {
+      alert("Failed to delete image.");
+    }
+}
+const onCanceleDeleteImage=()=>{
+setShowDelete(false)
+setImageUrl("")
+
+}
 useEffect(() => {
   const loadEvent = async () => {
     if (!id) return;
@@ -67,15 +85,8 @@ useEffect(() => {
   };
 
   const removeExistingImage = async (imgUrl: string) => {
-    if (!id) return;
-    const confirmed = window.confirm("Are you sure you want to delete this image?");
-    if (!confirmed) return;
-    try {
-      await removeImageFromEvent(id, imgUrl);
-      setExistingImages((prev) => prev.filter((img) => img !== imgUrl));
-    } catch {
-      alert("Failed to delete image.");
-    }
+setImageUrl(imgUrl)
+setShowDelete(true)
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -439,6 +450,11 @@ return (
         </CardContent>
       </Card>
     </Box>
+
+
+    {showdelete&&
+    <ConfirmDialog title="Delete the image" message="Are you sure want to delete the image?" confirmText="Yes" cancelText="No"  onConfirm={onConfirmDeleteImage} onCancel={onCanceleDeleteImage}/>
+    }
   </div>
 );
 

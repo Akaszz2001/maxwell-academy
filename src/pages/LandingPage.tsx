@@ -409,7 +409,7 @@ const LandingPage = () => {
                     </svg>
                   </div>
                   <div className="text-4xl font-black bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                    150+
+                    500+
                   </div>
                   <div className="text-sm text-gray-600 font-semibold mt-1">
                     Active Students

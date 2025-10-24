@@ -176,6 +176,7 @@ fetchStudentAttempts: async (studentId) => {
       sort: "-endedAt",
     });
 
+
     // enrich each attempt with totalMark
     const enrichedAttempts = await Promise.all(
       result.map(async (attempt: any) => {
@@ -271,7 +272,77 @@ fetchStudentAttempts: async (studentId) => {
   //     return { attended: [], notAttended: [] };
   //   }
   // },
-  fetchExamParticipants: async (examId) => {
+//   fetchExamParticipants: async (examId) => {
+//   try {
+//     set({ isLoading: true, error: null });
+
+//     // ✅ Get all students
+//     const allStudents = await pb.collection("users").getFullList({
+//       filter: `role = "student"`,
+//     });
+
+//     // ✅ Get attempts for this exam
+// const attempts = await pb.collection("exam_attempts").getFullList({
+//   filter: `examId="${examId}" && status~"completed"`,
+//   expand: "studentId,examId", // 👈 expand multiple relations
+// });
+// console.log("CHECKING",attempts);
+
+//     // Map attempts by studentId for quick lookup
+//     const attemptMap: Record<string, any> = {};
+//     attempts.forEach(async(a: any) => {
+//       const exam =a.expand?.examId
+//       const examMark=Number(exam.mark)||0
+
+//     const activeQuestions = await pb.collection("exam_questions").getFullList({
+//           filter: `examId="${examId}" && isActive=true`,
+//         });
+//       const totalMark=examMark*activeQuestions.length
+
+//       console.log("EXAM",totalMark);
+      
+//       attemptMap[a.studentId] = a; // store the full attempt (contains score, status, etc.)
+//     });
+
+
+//     console.log("ATTEMPT MAP",attemptMap);
+    
+
+//     // ✅ Attended: add score into user object
+//     const attended = allStudents
+//       .filter((s: any) => attemptMap[s.id])
+//       .map((s: any) => ({
+//         ...s,
+//         score: attemptMap[s.id]?.score ?? 0,
+//         attemptId: attemptMap[s.id]?.id, // optional if you want to link attempt
+//       }));
+
+
+//       console.log(attended);
+      
+
+//     // ✅ Not Attended
+//     const notAttended = allStudents.filter((s: any) => !attemptMap[s.id]);
+
+//     // Save to store
+//     set({
+//       attempts: attempts as unknown as ExamAttempt[],
+//       students: allStudents as unknown as User[],
+//       isLoading: false,
+//     });
+
+//     return {
+//       attended: attended as unknown as (User & { score: number })[],
+//       notAttended: notAttended as unknown as User[],
+//     };
+//   } catch (err: any) {
+//     set({ error: err.message, isLoading: false });
+//     return { attended: [], notAttended: [] };
+//   }
+// },
+
+
+fetchExamParticipants: async (examId) => {
   try {
     set({ isLoading: true, error: null });
 
@@ -280,31 +351,50 @@ fetchStudentAttempts: async (studentId) => {
       filter: `role = "student"`,
     });
 
-    // ✅ Get attempts for this exam
+    // ✅ Get attempts for this exam (with expanded relations)
     const attempts = await pb.collection("exam_attempts").getFullList({
       filter: `examId="${examId}" && status~"completed"`,
-      expand: "studentId",
+      expand: "studentId,examId",
     });
 
-    // Map attempts by studentId for quick lookup
+    console.log("CHECKING", attempts);
+
+    // ✅ Fetch active questions once (not per student)
+    const activeQuestions = await pb.collection("exam_questions").getFullList({
+      filter: `examId="${examId}" && isActive=true`,
+    });
+
+    // ✅ Create a map for quick lookup
     const attemptMap: Record<string, any> = {};
-    attempts.forEach((a: any) => {
-      attemptMap[a.studentId] = a; // store the full attempt (contains score, status, etc.)
-    });
 
-    // ✅ Attended: add score into user object
+    // Use a normal for...of to await async operations safely
+    for (const a of attempts) {
+      const exam = a.expand?.examId;
+      const examMark = Number(exam?.mark) || 0;
+      const totalMark = examMark * activeQuestions.length;
+
+      attemptMap[a.studentId] = {
+        ...a,
+        totalMark, // ✅ attach total mark to attempt
+      };
+    }
+
+    console.log("ATTEMPT MAP", attemptMap);
+
+    // ✅ Attended students
     const attended = allStudents
       .filter((s: any) => attemptMap[s.id])
       .map((s: any) => ({
         ...s,
         score: attemptMap[s.id]?.score ?? 0,
-        attemptId: attemptMap[s.id]?.id, // optional if you want to link attempt
+        totalMark: attemptMap[s.id]?.totalMark ?? 0, // ✅ include totalMark
+        attemptId: attemptMap[s.id]?.id,
       }));
 
-    // ✅ Not Attended
+    // ✅ Not Attended students
     const notAttended = allStudents.filter((s: any) => !attemptMap[s.id]);
 
-    // Save to store
+    // ✅ Update store
     set({
       attempts: attempts as unknown as ExamAttempt[],
       students: allStudents as unknown as User[],
@@ -312,7 +402,7 @@ fetchStudentAttempts: async (studentId) => {
     });
 
     return {
-      attended: attended as unknown as (User & { score: number })[],
+      attended: attended as unknown as (User & { score: number; totalMark: number })[],
       notAttended: notAttended as unknown as User[],
     };
   } catch (err: any) {
@@ -320,6 +410,49 @@ fetchStudentAttempts: async (studentId) => {
     return { attended: [], notAttended: [] };
   }
 },
+
+
+// fetchUserAttemptedExams: async (userId: string) => {
+//   try {
+//     set({ isLoading: true, error: null });
+
+//     // ✅ Fetch all exams
+//     const exams = await pb.collection("exams").getFullList({
+//       sort: "-created",
+//     });
+
+//     // ✅ Fetch attempts by this user
+//     const attempts = await pb.collection("exam_attempts").getFullList({
+//       filter: `studentId="${userId}" && status~"completed"`,
+//       expand: "examId",
+//       sort: "-endedAt",
+//     });
+
+//     // ✅ Filter the exams that match attempted ones
+//     const attemptedExamIds = attempts.map((a: any) => a.examId);
+//     const attemptedExams = exams.filter((exam: any) =>
+//       attemptedExamIds.includes(exam.id)
+//     );
+
+//     // ✅ Enrich with attempt info (score, startedAt, endedAt)
+//     const detailedAttempts = attemptedExams.map((exam: any) => {
+//       const attempt = attempts.find((a: any) => a.examId === exam.id);
+//       return {
+//         ...exam,
+//         score: attempt?.score ?? 0,
+//         startedAt: attempt?.startedAt,
+//         endedAt: attempt?.endedAt,
+//         attemptId: attempt?.id,
+//       };
+//     });
+
+//     set({ individualExams: detailedAttempts as ExamAttempt[], isLoading: false });
+//   } catch (err: any) {
+//     console.error(err);
+//     set({ error: err.message, isLoading: false });
+//   }
+// },
+
 fetchUserAttemptedExams: async (userId: string) => {
   try {
     set({ isLoading: true, error: null });
@@ -336,30 +469,48 @@ fetchUserAttemptedExams: async (userId: string) => {
       sort: "-endedAt",
     });
 
+    // ✅ Fetch all active questions (for total mark calculation)
+    const allActiveQuestions = await pb.collection("exam_questions").getFullList({
+      filter: `isActive=true`,
+    });
+
+    // ✅ Count active questions per exam
+    const questionCountMap: Record<string, number> = {};
+    for (const q of allActiveQuestions) {
+      questionCountMap[q.examId] = (questionCountMap[q.examId] || 0) + 1;
+    }
+
     // ✅ Filter the exams that match attempted ones
     const attemptedExamIds = attempts.map((a: any) => a.examId);
     const attemptedExams = exams.filter((exam: any) =>
       attemptedExamIds.includes(exam.id)
     );
 
-    // ✅ Enrich with attempt info (score, startedAt, endedAt)
+    // ✅ Enrich with attempt info (score, startedAt, endedAt, totalMark)
     const detailedAttempts = attemptedExams.map((exam: any) => {
       const attempt = attempts.find((a: any) => a.examId === exam.id);
+      const totalMark =
+        (Number(exam.mark) || 0) * (questionCountMap[exam.id] || 0);
+
       return {
         ...exam,
         score: attempt?.score ?? 0,
         startedAt: attempt?.startedAt,
         endedAt: attempt?.endedAt,
         attemptId: attempt?.id,
+        totalMark, // ✅ Attach total mark for each exam
       };
     });
 
-    set({ individualExams: detailedAttempts as ExamAttempt[], isLoading: false });
+    // ✅ Update store
+    set({
+      individualExams: detailedAttempts as ExamAttempt[],
+      isLoading: false,
+    });
   } catch (err: any) {
     console.error(err);
     set({ error: err.message, isLoading: false });
   }
 },
-
 
 }));

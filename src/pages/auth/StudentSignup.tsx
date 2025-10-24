@@ -234,7 +234,7 @@ return (
           </button>
         </form>
 
-        <p className="text-center text-sm mt-6 text-gray-600">
+  { user?.role!=="admin"&&     <p className="text-center text-sm mt-6 text-gray-600">
           Already have an account?{" "}
           <a
             href="/login"
@@ -242,7 +242,7 @@ return (
           >
             Login
           </a>
-        </p>
+        </p>}
       </div>
     </div>
 

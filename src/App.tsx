@@ -117,6 +117,7 @@ const noNavbarPatterns: RegExp[] = [
    // student dashboard exact
     // student dashboard exact
   /^\/student\/dashboard\/allExams\/?$/, // allExams list
+  /^\/admin\/dashboard\/showcredential\/?$/, // allExams list
   /^\/admin\/dashboard\/editAnnouncement\/\w+$/, // allExams list
   /^\/admin\/dashboard\/editPerformer\/\w+$/, // allExams list
   /^\/admin\/dashboard\/createFacultyGallery\/\w+$/, // allExams list
