@@ -19,7 +19,8 @@ export interface Exam {
   created: string;
   updated: string;
   classs:string
-  isActive?: boolean; // ✅ to support deactivate
+  isActive?: boolean; 
+  passPercentage?:number// ✅ to support deactivate
 }
 export interface CategorizedExams {
   upcomingExams: Exam[];
@@ -128,18 +129,58 @@ export const useExamStore = create<ExamState>((set) => ({
       return err
     }
   },
+  // fetchAllExamsByActive: async () => {
+  //   try {
+  //     set({ isLoading: true, error: null });
+  //     const result = await pb.collection("exams").getFullList<Exam>({
+  //       sort: "-created",
+  //       filter: "isActive = true",
+  //     });
+  //     set({ exams: result, isLoading: false });
+  //   } catch (err: any) {
+  //     set({ error: err.message, isLoading: false });
+  //   }
+  // },
+
   fetchAllExamsByActive: async () => {
-    try {
-      set({ isLoading: true, error: null });
-      const result = await pb.collection("exams").getFullList<Exam>({
-        sort: "-created",
-        filter: "isActive = true",
-      });
-      set({ exams: result, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.message, isLoading: false });
-    }
-  },
+  try {
+    set({ isLoading: true, error: null });
+
+    // 1️⃣ Fetch all active exams
+    const exams = await pb.collection("exams").getFullList<Exam>({
+      sort: "-created",
+      filter: "isActive = true",
+    });
+
+    // 2️⃣ For each exam, fetch active questions and attach question count
+    const examsWithQuestionCounts = await Promise.all(
+      exams.map(async (exam) => {
+        try {
+          const questions = await pb.collection("exam_questions").getFullList({
+            filter: `examId = "${exam.id}" && isActive = true`,
+          });
+
+          return {
+            ...exam,
+            activeQuestionCount: questions.length, // Add active question count
+          };
+        } catch (err) {
+          console.error(`Failed to fetch questions for exam ${exam.id}:`, err);
+          return {
+            ...exam,
+            activeQuestionCount: 0, // Default if error occurs
+          };
+        }
+      })
+    );
+
+    // 3️⃣ Update state with enriched exam data
+    set({ exams: examsWithQuestionCounts, isLoading: false });
+  } catch (err: any) {
+    set({ error: err.message, isLoading: false });
+  }
+},
+
 
   // ✅ update exam details
  updateExam: async (id, data) => {

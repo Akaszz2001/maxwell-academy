@@ -109,36 +109,52 @@ export default function ExamList() {
   if (isLoading) return <div className="p-6">Loading exams...</div>;
   if (error) return <div className="p-6 text-red-500">{error}</div>;
 
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Available Exams</h1>
+return (
+  <div className="p-6 bg-gray-50 min-h-screen">
+    <h1 className="text-3xl font-extrabold mb-10 text-gray-800 text-center">
+      🎓 Available Exams
+    </h1>
 
-      {exams.length === 0 ? (
-        <p>No exams available right now.</p>
-      ) : (
-        <div className="space-y-4">
-          {exams.map((exam) => (
-            <div
-              key={exam.id}
-              className="flex justify-between items-center p-4 border rounded-lg shadow"
-            >
-              <div>
-                <h2 className="text-lg font-semibold">{exam.name}</h2>
-                <p className="text-sm text-gray-600">{exam.subject}</p>
-                <p className="text-sm text-gray-500">
-                  Duration: {exam.duration} mins
-                </p>
+    {exams.length === 0 ? (
+      <p className="text-center text-gray-500 text-lg">No exams available right now.</p>
+    ) : (
+      <div className="space-y-6 max-w-4xl mx-auto">
+        {exams.map((exam) => (
+          <div
+            key={exam.id}
+            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 p-6 border border-gray-200 rounded-3xl shadow-md bg-white hover:shadow-xl transition-all duration-300"
+          >
+            <div className="flex-1">
+              <h2 className="text-2xl font-semibold text-gray-900">{exam.name}</h2>
+              <p className="text-sm text-gray-600 mt-1">{exam.subject}</p>
+              <div className="flex flex-wrap gap-3 mt-4 text-sm">
+                <span className="px-3 py-1 bg-blue-50 text-blue-800 rounded-full font-semibold flex items-center gap-1">
+                  ⏱ Duration: {exam.duration} mins
+                </span>
+                <span className="px-3 py-1 bg-indigo-50 text-indigo-800 rounded-full font-semibold flex items-center gap-1">
+                  📝 Questions: {exam.activeQuestionCount}
+                </span>
+                <span className="px-3 py-1 bg-green-50 text-green-800 rounded-full font-semibold flex items-center gap-1">
+                  🏅 Total Marks: {exam.activeQuestionCount * exam.mark}
+                </span>
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-900 rounded-full font-semibold flex items-center gap-1">
+                  🎯 Pass: {exam.passPercentage}%
+                </span>
               </div>
-              <button
-                onClick={() => handleStart(exam.id)}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
-              >
-                Start Exam
-              </button>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+
+            <button
+              onClick={() => handleStart(exam.id)}
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg transition-transform hover:scale-105"
+            >
+              Start Exam
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+
 }

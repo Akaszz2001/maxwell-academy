@@ -303,6 +303,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useExamStore } from "../../store/examStore";
 import { toast } from "react-toastify";
 import { useAuthStore } from "@/store/authStore";
+import { number } from "framer-motion";
 
 export default function CreateExam() {
   const {user}=useAuthStore()
@@ -319,6 +320,7 @@ export default function CreateExam() {
     startTime: "",
     classs:"",
     duration: 60,
+    passPercentage:0
   });
 
   // ✅ Load existing exam if editing
@@ -331,6 +333,7 @@ export default function CreateExam() {
             subject: exam.subject || "",
             mark:exam.mark ||1,
             negMark:exam.negMark ||-1,
+            passPercentage:exam.passPercentage || 50,
              classs:exam.classs||"",
             startTime: exam.startTime
               ? new Date(exam.startTime).toISOString().slice(0, 16)
@@ -705,6 +708,29 @@ return (
               const regex = /^(0|[1-9]\d*)(\.\d*)?$/;
               if (regex.test(raw)) {
                 handleChange({ target: { name: "negMark", value: raw } } as any);
+              }
+            }}
+            className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+          />
+        </div>
+        <div>
+          <label className="block mb-2 font-medium text-gray-700">
+            Pass Percentage
+          </label>
+          <input
+            type="text"
+            name="passpercentage"
+            placeholder="Pass Percentage"
+            value={formData.passPercentage}
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (raw === "") {
+                handleChange({ target: { name: "passPercentage", value: "" } } as any);
+                return;
+              }
+              const regex = /^(0|[1-9]\d*)(\.\d*)?$/;
+              if (regex.test(raw)) {
+                handleChange({ target: { name: "passPercentage", value: raw } } as any);
               }
             }}
             className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
