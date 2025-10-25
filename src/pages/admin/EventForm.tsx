@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 
 
 import React, { useState, useEffect } from "react";
@@ -69,7 +70,7 @@ useEffect(() => {
   };
 
   loadEvent();
-}, [events, fetchEvents, id]);
+}, [fetchEvents]);
  // only run on mount or id change
 
 
