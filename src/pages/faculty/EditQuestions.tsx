@@ -207,7 +207,7 @@ const handleOptionChange = (qIndex: number, optIndex: number, value: string) => 
 
       {/* Active Questions */}
       <section className="mb-12">
-        <h3 className="text-xl font-semibold mb-4">Active Questions</h3>
+        <h3 className="text-xl font-semibold mb-4">Active Questions ({activeQuestions.length})</h3>
 
         {/* Search bar for Active */}
         <input
