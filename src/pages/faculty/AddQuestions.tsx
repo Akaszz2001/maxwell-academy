@@ -1361,7 +1361,10 @@ export default function AddQuestions() {
               onChange={handleFileSelect}
             />
           </div>
-
+<h1 className="text-center text-2xl sm:text-3xl font-bold text-gray-800 mt-6 mb-4">
+  Total Image Questions:{" "}
+  <span className="text-blue-600">{savedImages.length}</span>
+</h1>
           {savedImages.length > 0 && (
             <>
               <div className="my-4 grid grid-cols-1 sm:grid-cols-3 gap-4">

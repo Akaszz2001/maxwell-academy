@@ -1105,6 +1105,10 @@ export default function Questions() {
               onChange={handleFileSelect}
             />
           </div>
+<h1 className="text-center text-2xl sm:text-3xl font-bold text-gray-800 mt-6 mb-4">
+  Total Image Questions:{" "}
+  <span className="text-blue-600">{savedImages.length}</span>
+</h1>
 
           {savedImages.length > 0 && (
             <>

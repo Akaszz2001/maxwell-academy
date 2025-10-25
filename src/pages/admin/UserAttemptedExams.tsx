@@ -316,7 +316,7 @@ const UserAttemptedExams: React.FC = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {individualExams.map((exam: any) => {
           const percentage = (exam.score / exam.totalMark) * 100;
-          const isPassed = percentage <= 50;
+          const isPassed = percentage >= 50;
 
           const cardBg = isPassed ? "bg-green-50" : "bg-red-50";
           const btnColor = isPassed
