@@ -220,7 +220,12 @@
 //     </div>
 //   );
 // }
-import React, { useEffect } from "react";
+
+
+
+
+
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -229,16 +234,18 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Pencil, Power, Copy, PowerOff } from "lucide-react";
+import { Calendar, Pencil, Copy, Search } from "lucide-react";
 import { useExamStore } from "../../store/examStore";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 
 export default function FacultyExams() {
-  const { exams, fetchExamsByUser, deactivateExam, duplicateExam, isLoading } =
+  const { exams, fetchExamsByUser, duplicateExam, isLoading } =
     useExamStore();
   const { user } = useAuthStore();
   const navigate = useNavigate();
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -254,6 +261,11 @@ export default function FacultyExams() {
     );
   }
 
+  // Filter exams by name (case-insensitive)
+  const filteredExams = exams.filter((exam) =>
+    exam.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-blue-50 to-white py-16 px-6 md:px-12">
       {/* Background Decorations */}
@@ -261,19 +273,33 @@ export default function FacultyExams() {
       <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-300 rounded-full opacity-25 blur-3xl -z-10" />
 
       <div className="relative max-w-7xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800 mb-14 text-center tracking-tight">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800 mb-10 text-center tracking-tight">
           Your Exams
         </h1>
 
+        {/* 🌟 Search Bar */}
+        <div className="flex justify-center mb-14">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search exams by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 rounded-full border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white/80 backdrop-blur-md"
+            />
+          </div>
+        </div>
+
         {/* Exam Cards Grid */}
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {exams.length === 0 && (
+          {filteredExams.length === 0 && (
             <p className="text-center col-span-full text-gray-500">
-              No exams created yet 🚀
+              No exams found 🚀
             </p>
           )}
 
-          {exams.map((exam) => (
+          {filteredExams.map((exam) => (
             <Card
               key={exam.id}
               className="flex flex-col justify-between shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all rounded-2xl border border-gray-100 bg-white/70 backdrop-blur-lg"
@@ -318,21 +344,6 @@ export default function FacultyExams() {
                 >
                   <Copy size={18} />
                 </Button>
-
-                {/* Activate / Deactivate */}
-                {/* <Button
-                  size="icon"
-                  onClick={() => deactivateExam(exam.id)}
-                  disabled={exam.isActive === false}
-                  className={`rounded-full shadow-md hover:scale-110 transition
-                    ${
-                      exam.isActive
-                        ? "bg-red-500 text-white hover:bg-red-600"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                >
-                  {exam.isActive ? <PowerOff size={18} /> : <Power size={18} />}
-                </Button> */}
               </CardFooter>
             </Card>
           ))}

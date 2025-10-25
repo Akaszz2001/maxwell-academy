@@ -467,6 +467,13 @@
 //   );
 // }
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
+
+
+
+
+
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useExamSessionStore } from "../../store/examSessionStore";
@@ -600,7 +607,7 @@ export default function ExamWindow() {
 
       setExamData(exam);
       setQuestions(questions);
-      setTimeLeft(exam.duration * 60);
+      setTimeLeft(Number(exam.duration) * 60);
       setExam(exam.id, exam.duration, exam.name);
     };
 
@@ -646,26 +653,26 @@ export default function ExamWindow() {
     return `${pb.baseUrl}/api/files/${collection}/${recordId}/${fileName}`;
   };
 
-  useEffect(() => {
-    if (!exam) return;
+  // useEffect(() => {
+  //   if (!exam) return;
 
-    const savedTime = localStorage.getItem(`exam_${exam.id}_time`);
-    if (savedTime) setTimeLeft(parseInt(savedTime));
+  //   const savedTime = localStorage.getItem(`exam_${exam.id}_time`);
+  //   if (savedTime) setTimeLeft(parseInt(savedTime));
 
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          handleFinish();
-          return 0;
-        }
-        localStorage.setItem(`exam_${exam.id}_time`, (prev - 1).toString());
-        return prev - 1;
-      });
-    }, 1000);
+  //   const interval = setInterval(() => {
+  //     setTimeLeft((prev) => {
+  //       if (prev <= 1) {
+  //         clearInterval(interval);
+  //         handleFinish();
+  //         return 0;
+  //       }
+  //       localStorage.setItem(`exam_${exam.id}_time`, (prev - 1).toString());
+  //       return prev - 1;
+  //     });
+  //   }, 1000);
 
-    return () => clearInterval(interval);
-  }, [exam, handleFinish]);
+  //   return () => clearInterval(interval);
+  // }, [exam, handleFinish]);
 
   useEffect(() => {
     if (exam) {
@@ -724,6 +731,27 @@ export default function ExamWindow() {
     const s = sec % 60;
     return `${m}:${s < 10 ? "0" + s : s}`;
   };
+
+  useEffect(() => {
+    if (!exam) return;
+
+    const savedTime = localStorage.getItem(`exam_${exam.id}_time`);
+    if (savedTime) setTimeLeft(parseInt(savedTime));
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+      confirmSubmit()
+          return 0;
+        }
+        localStorage.setItem(`exam_${exam.id}_time`, (prev - 1).toString());
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [exam]);
 
   if (!exam) return <p className="text-center p-6">Loading exam...</p>;
 
