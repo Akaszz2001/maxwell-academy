@@ -304,6 +304,8 @@ export default function AttendedStudentsList() {
       try {
         const { attended, notAttended } = await fetchExamParticipants(examId);
         setAttended(attended);
+        console.log(attended);
+        
         setNotAttended(notAttended);
       } catch (err) {
         console.error("Failed to fetch participants:", err);
@@ -428,7 +430,7 @@ export default function AttendedStudentsList() {
         <div className="space-y-4 mb-10">
           {filteredAttended.map((s) => {
             const percentage = (s.score / s.totalMark) * 100;
-            const isPassed = percentage >= 50;
+            const isPassed = percentage >= s.passPercentage;
 
             return (
               <Card
@@ -465,7 +467,10 @@ export default function AttendedStudentsList() {
                   </Typography>
 
                   <Typography variant="body1" sx={{ mt: 0.5 }}>
-                    <strong>Percentage:</strong> {percentage.toFixed(2)}%
+                    <strong>Percentage Scored:</strong> {percentage.toFixed(2)}% 
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0.5 }}>
+                    <strong>Percentage Required: </strong>{s.passPercentage} %
                   </Typography>
                 </Box>
 

@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import logo from "../assets/officialLogo.png";
 import banner1 from "../assets/bannerImages/1.jpg"; // Added logo import
 import banner2 from "../assets/bannerImages/2.jpg"; // Added logo import
-import banner3 from "../assets/bannerImages/3.jpg"; // Added logo import
-import banner4 from "../assets/bannerImages/4.jpg"; // Added logo import
+ // Added logo import
 import banner5 from "../assets/bannerImages/5.jpg"; // Added logo import
 import banner6 from "../assets/bannerImages/6.jpg"; // Added logo import
 import banner7 from "../assets/bannerImages/7.jpg"; // Added logo import
@@ -39,7 +38,7 @@ const LandingPage = () => {
     pauseOnHover: false, // keep autoplay even if hovered
   };
 
-  const images = [banner1, banner2, banner3,banner4,banner5,banner6,banner7];
+  const images = [banner7,banner1, banner2,banner5,banner6];
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [showTopBlur, setShowTopBlur] = useState(false);
   const [showBottomBlur, setShowBottomBlur] = useState(false);

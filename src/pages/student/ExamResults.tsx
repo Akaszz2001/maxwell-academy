@@ -67,7 +67,7 @@ console.log("EXAM RESULTS ",attempts);
 
       {attempts.map((attempt) => {
         const percentage = (attempt.score / attempt.totalMark) * 100;
-        const isPassed = percentage >= 50;
+        const isPassed = percentage >= attempt.passPercentage;
         
         return (
           <Card
@@ -102,7 +102,10 @@ console.log("EXAM RESULTS ",attempts);
                 <strong>Score:</strong> {attempt.score} / {attempt.totalMark}
               </Typography>
               <Typography variant="body1" sx={{ mt: 0.5 }}>
-                <strong>Percentage:</strong> {percentage.toFixed(2)}%
+                <strong>Percentage Scored:</strong> {percentage.toFixed(2)}%
+              </Typography>
+              <Typography variant="body1" sx={{ mt: 0.5 }}>
+                <strong>Percentage Required:</strong> {attempt.passPercentage}%
               </Typography>
 
               <Typography

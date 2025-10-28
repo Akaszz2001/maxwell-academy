@@ -105,6 +105,7 @@ interface ExamAttempt {
   status: string;
   expand?: { examId: any; studentId: any };
     totalMark: number;
+    
 }
 
 interface ExamAnswer {
@@ -184,7 +185,7 @@ fetchStudentAttempts: async (studentId) => {
         if (!exam) return attempt;
 
         const examMark = Number(exam.mark) || 0;
-
+      const passPercentage=Number(exam.passPercentage)
         // count active questions for this exam
         const activeQuestions = await pb.collection("exam_questions").getFullList({
           filter: `examId="${exam.id}" && isActive=true`,
@@ -195,6 +196,7 @@ fetchStudentAttempts: async (studentId) => {
         return {
           ...attempt,
           totalMark,
+          passPercentage,
         } as ExamAttempt;
       })
     );
@@ -372,10 +374,11 @@ fetchExamParticipants: async (examId) => {
       const exam = a.expand?.examId;
       const examMark = Number(exam?.mark) || 0;
       const totalMark = examMark * activeQuestions.length;
-
+      const passPercentage=Number(exam?.passPercentage) 
       attemptMap[a.studentId] = {
         ...a,
-        totalMark, // ✅ attach total mark to attempt
+        totalMark,
+        passPercentage // ✅ attach total mark to attempt
       };
     }
 
@@ -389,6 +392,7 @@ fetchExamParticipants: async (examId) => {
         score: attemptMap[s.id]?.score ?? 0,
         totalMark: attemptMap[s.id]?.totalMark ?? 0, // ✅ include totalMark
         attemptId: attemptMap[s.id]?.id,
+        passPercentage:attemptMap[s.id]?.passPercentage??0
       }));
 
     // ✅ Not Attended students
@@ -491,14 +495,15 @@ fetchUserAttemptedExams: async (userId: string) => {
       const attempt = attempts.find((a: any) => a.examId === exam.id);
       const totalMark =
         (Number(exam.mark) || 0) * (questionCountMap[exam.id] || 0);
-
+      const passPercentage=Number(exam.passPercentage)
       return {
         ...exam,
         score: attempt?.score ?? 0,
         startedAt: attempt?.startedAt,
         endedAt: attempt?.endedAt,
         attemptId: attempt?.id,
-        totalMark, // ✅ Attach total mark for each exam
+        totalMark,
+        passPercentage // ✅ Attach total mark for each exam
       };
     });
 

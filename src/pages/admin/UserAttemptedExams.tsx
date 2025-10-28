@@ -227,7 +227,7 @@ import React, { useEffect, useState } from "react";
 import { useExamResultStore } from "@/store/examResultStore";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Loader2, Calendar, ArrowLeft, Home, ArrowUp } from "lucide-react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/authStore";
 
@@ -236,7 +236,8 @@ const UserAttemptedExams: React.FC = () => {
   const { user } = useAuthStore();
   const { studentId } = useParams();
   const navigate = useNavigate();
-
+const location=useLocation()
+const {name}=location.state 
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   // ✅ Fetch exams
@@ -302,7 +303,7 @@ const UserAttemptedExams: React.FC = () => {
 
       {/* Title */}
       <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
-        Your Attempted Exams
+        {name} Completed Exams
       </h2>
 
       {/* Empty Message */}
@@ -316,7 +317,7 @@ const UserAttemptedExams: React.FC = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {individualExams.map((exam: any) => {
           const percentage = (exam.score / exam.totalMark) * 100;
-          const isPassed = percentage >= 50;
+          const isPassed = percentage >= exam.passPercentage;
 
           const cardBg = isPassed ? "bg-green-50" : "bg-red-50";
           const btnColor = isPassed
@@ -351,8 +352,12 @@ const UserAttemptedExams: React.FC = () => {
                 </div>
 
                 <div className="font-medium">
-                  <span className="text-blue-600">Percentage:</span>{" "}
+                  <span className="text-blue-600">Percentage Scored:</span>{" "}
                   {percentage.toFixed(2)}%
+                </div>
+                <div className="font-medium">
+                  <span className="text-blue-600">Percentage Required:</span>{" "}
+                  {exam.passPercentage}%
                 </div>
 
                 {/* Review Button */}

@@ -404,7 +404,7 @@ const [showScrollTop, setShowScrollTop] = useState(false);
     <>
       {s.role === "student" ? (
         <span
-          onClick={() => navigate(`/admin/dashboard/userExams/${s.id}`)}
+          onClick={() => navigate(`/admin/dashboard/userExams/${s.id}`,{state:{name:s.name}})}
           className="text-blue-600 font-medium cursor-pointer hover:underline transition-all"
           title="Click to view user exams"
         >

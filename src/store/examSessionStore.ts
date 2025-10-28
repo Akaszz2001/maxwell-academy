@@ -391,9 +391,13 @@ export const useExamSessionStore = create<ExamSessionState>((set, get) => ({
     if (
       question.answer?.toLowerCase().trim() === ans.toLowerCase().trim()
     ) {
-      score += mark; // correct
+      score += Number(mark); // correct
+      console.log("PLUS");
+      
     } else {
-      score -= negMark; // wrong
+      score -= Number(negMark); // wrong
+      console.log("minus");
+      
     }
   }
 
