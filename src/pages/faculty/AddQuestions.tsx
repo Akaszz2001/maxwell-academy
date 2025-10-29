@@ -1394,7 +1394,7 @@ export default function AddQuestions() {
                     <img src={img.dataUrl} alt={img.name} className="w-full h-40 object-contain rounded mb-3" />
                     <p className="text-sm truncate mb-2">{img.name}</p>
 
-                    <input
+                    {/* <input
                       type="text"
                       placeholder="Answer (a/b/c/d)"
                       className="border px-2 py-1 rounded w-full"
@@ -1405,7 +1405,27 @@ export default function AddQuestions() {
                           [img.id]: e.target.value,
                         }))
                       }
-                    />
+                    /> */}
+            
+
+
+                        <input
+  type="text"
+  maxLength={1}
+  placeholder="Answer (a/b/c/d)"
+  className="border px-2 py-1 rounded w-full"
+  value={answers[img.id] || ""}
+  onChange={(e) => {
+    const value = e.target.value.toLowerCase();
+    if (/^[abcd]?$/.test(value)) {
+      setAnswers((prev) => ({
+        ...prev,
+        [img.id]: value,
+      }));
+    }
+  }}
+/>
+
 
                     <div className="flex gap-2 mt-3">
                       <button

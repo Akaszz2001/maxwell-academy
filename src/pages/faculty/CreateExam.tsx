@@ -303,7 +303,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useExamStore } from "../../store/examStore";
 import { toast } from "react-toastify";
 import { useAuthStore } from "@/store/authStore";
-import { number } from "framer-motion";
 
 export default function CreateExam() {
   const {user}=useAuthStore()
@@ -331,8 +330,8 @@ export default function CreateExam() {
           setFormData({
             name: exam.name || "",
             subject: exam.subject || "",
-            mark:exam.mark ||1,
-            negMark:exam.negMark ||-1,
+            mark:exam.mark || 1,
+            negMark:exam.negMark || 0,
             passPercentage:exam.passPercentage || 50,
              classs:exam.classs||"",
             startTime: exam.startTime
