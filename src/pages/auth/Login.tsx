@@ -492,7 +492,7 @@ const err=((prev: any) => ({ ...prev, [fieldName]: error }))
             {/* Sign Up Link */}
             <p className="text-center text-gray-600 pt-4">
               Don't have an account?{' '}
-              <a href="#" className="text-blue-600 font-black hover:text-indigo-600 transition-all relative group">
+              <a href="/signup" className="text-blue-600 font-black hover:text-indigo-600 transition-all relative group">
                 Sign Up
                 <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
               </a>
